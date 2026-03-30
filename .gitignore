@@ -101,3 +101,4 @@ brain/
 *.md
 !README.md
 !docs/*
+*.txt
