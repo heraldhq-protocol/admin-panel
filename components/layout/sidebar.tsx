@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  X,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useUiStore } from '@/lib/stores/ui-store'
@@ -26,14 +27,14 @@ import {
 import { Badge } from '@/components/ui/badge'
 
 const navItems = [
-  { name: 'Overview',        href: '/dashboard',        icon: LayoutDashboard },
-  { name: 'Protocols',       href: '/protocols',        icon: Database },
-  { name: 'Notifications',   href: '/notifications',    icon: Bell },
-  { name: 'Receipts',        href: '/receipts',         icon: RefreshCw },
-  { name: 'Email Health',    href: '/email-health',     icon: Activity },
-  { name: 'Design Partners', href: '/design-partners',  icon: Handshake },
-  { name: 'Incidents',       href: '/incidents',        icon: ShieldAlert },
-  { name: 'Team',            href: '/team',             icon: Users },
+  { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Protocols', href: '/protocols', icon: Database },
+  { name: 'Notifications', href: '/notifications', icon: Bell },
+  { name: 'Receipts', href: '/receipts', icon: RefreshCw },
+  { name: 'Email Health', href: '/email-health', icon: Activity },
+  { name: 'Design Partners', href: '/design-partners', icon: Handshake },
+  { name: 'Incidents', href: '/incidents', icon: ShieldAlert },
+  { name: 'Team', href: '/team', icon: Users },
 ]
 
 export function SidebarNav() {
@@ -43,8 +44,8 @@ export function SidebarNav() {
   const { data: session } = useSession()
 
   const displayName = session?.user?.name ?? 'Admin'
-  const role        = (session?.user as { role?: string } | undefined)?.role ?? 'admin'
-  const initials    = displayName
+  const role = (session?.user as { role?: string } | undefined)?.role ?? 'admin'
+  const initials = displayName
     .split(' ')
     .map((w) => w[0])
     .join('')
@@ -66,7 +67,7 @@ export function SidebarNav() {
       {/* ── Logo ──────────────────────────────────── */}
       <div
         className={cn(
-          'h-16 flex items-center px-4',
+          'h-14 flex items-center px-4',
           sidebarCollapsed ? 'justify-center' : 'justify-between',
         )}
       >
@@ -83,19 +84,33 @@ export function SidebarNav() {
             </span>
           </div>
         )}
+        {/* Expand Toggle (Desktop Only to avoid duplicate with footer) */}
         {sidebarCollapsed && (
-          <span className="bg-admin text-[8px] font-black text-white px-1 rounded">
-            ADMIN
-          </span>
+          <button
+            onClick={toggleSidebar}
+            className="hidden lg:flex h-6 w-6 rounded hover:bg-card-2 items-center justify-center text-text-muted hover:text-text-primary transition-colors"
+          >
+            <ChevronRight size={16} />
+          </button>
         )}
+
+        {/* Collapse Toggle (Desktop + Mobile) */}
         {!sidebarCollapsed && (
           <button
             onClick={toggleSidebar}
-            className="h-6 w-6 rounded hover:bg-card-2 flex items-center justify-center text-text-muted hover:text-text-primary transition-colors"
+            className="flex h-6 w-6 rounded hover:bg-card-2 items-center justify-center text-text-muted hover:text-text-primary transition-colors"
           >
             <ChevronLeft size={16} />
           </button>
         )}
+
+        {/* Mobile Close Button */}
+        <button
+          onClick={() => useUiStore.getState().setMobileSidebarOpen(false)}
+          className="flex lg:hidden h-6 w-6 rounded hover:bg-card-2 items-center justify-center text-text-muted transition-colors"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {/* ── Separator ─────────────────────────────── */}
@@ -155,7 +170,7 @@ export function SidebarNav() {
             <TooltipTrigger asChild>
               <button
                 onClick={toggleSidebar}
-                className="mx-auto h-8 w-8 rounded-lg hover:bg-card-2 flex items-center justify-center text-text-muted transition-colors"
+                className="mx-auto h-8 w-8 rounded-lg hover:bg-card-2 items-center justify-center text-text-muted transition-colors"
               >
                 <ChevronRight size={18} />
               </button>

@@ -51,7 +51,7 @@ export default function LoginPage() {
     setIsLoading(true)
     setError(null)
     try {
-      const result = await signIn('otp', {
+      const result = await signIn('email-totp', {
         email,
         code,
         redirect: false,

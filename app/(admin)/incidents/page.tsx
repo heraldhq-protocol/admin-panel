@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { QUERY_KEYS } from '@/lib/query-keys'
 import { formatRelativeTime } from '@/lib/format'
+import { cn } from '@/lib/cn'
 
 export default function IncidentsPage() {
   const { data, isLoading } = useQuery({
@@ -115,8 +116,4 @@ export default function IncidentsPage() {
       />
     </div>
   )
-}
-
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(' ')
 }

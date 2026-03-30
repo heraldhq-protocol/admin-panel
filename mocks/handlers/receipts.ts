@@ -3,7 +3,7 @@ import { mockReceipts } from '../data/receipts'
 
 export const receiptHandlers = [
   // GET all failed receipts
-  http.get('/api/admin/receipts', async () => {
+  http.get('/api/admin/receipts/failed', async () => {
     await delay(400)
     return HttpResponse.json({
       data: mockReceipts,
@@ -30,5 +30,19 @@ export const receiptHandlers = [
       mockReceipts[index]!.last_attempted_at = new Date().toISOString()
       return HttpResponse.json({ success: false, error: 'RPC_TIMEOUT' }, { status: 500 })
     }
+  }),
+
+  // POST retry all receipts
+  http.post('/api/admin/receipts/retry-all', async () => {
+    await delay(2000)
+    const total = mockReceipts.length
+    const succeeded = Math.floor(total * 0.7)
+    // Remove succeeded ones
+    mockReceipts.splice(0, succeeded)
+    return HttpResponse.json({
+      retried: total,
+      succeeded,
+      failed: total - succeeded,
+    })
   }),
 ]

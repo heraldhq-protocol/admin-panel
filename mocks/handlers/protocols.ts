@@ -82,4 +82,15 @@ export const protocolHandlers = [
     protocol.tier = body.tier as any
     return HttpResponse.json(protocol)
   }),
+
+  // POST protocol notes
+  http.post('/api/admin/protocols/:id/notes', async ({ params, request }) => {
+    await delay(600)
+    await request.json()
+    const protocol = mockProtocols.find(p => p.id === params.id)
+    if (!protocol) return HttpResponse.json({ error: 'NOT_FOUND' }, { status: 404 })
+    
+    // In real app, we'd save it to the DB
+    return HttpResponse.json(protocol)
+  }),
 ]

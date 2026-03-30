@@ -1,6 +1,6 @@
 'use client'
-
 import * as React from 'react'
+import { cn } from '@/lib/cn'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { Plus, Search, Filter } from 'lucide-react'
@@ -117,7 +117,7 @@ export default function ProtocolsPage() {
 
       <div className="flex items-center justify-between">
         <p className="text-xs text-text-muted">
-          Showing {data?.data.length || 0} of {data?.total || 0} protocols
+          Showing {data?.data?.length ?? 0} of {data?.total ?? 0} protocols
         </p>
         <div className="flex gap-2">
           <Button 
@@ -140,8 +140,4 @@ export default function ProtocolsPage() {
       </div>
     </div>
   )
-}
-
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(' ')
 }

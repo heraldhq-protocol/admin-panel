@@ -59,4 +59,42 @@ export const incidentHandlers = [
     incident.resolved_by = body.resolved_by
     return HttpResponse.json(incident)
   }),
+
+  // POST create incident
+  http.post('/api/admin/incidents', async ({ request }) => {
+    await delay(600)
+    const body = await request.json() as any
+    const newIncident = {
+      ...body,
+      id: `inc_${Date.now()}`,
+      status: 'investigating',
+      detected_at: new Date().toISOString(),
+      timeline: []
+    }
+    mockIncidents.push(newIncident)
+    return HttpResponse.json(newIncident)
+  }),
+
+  // PUT update incident status
+  http.put('/api/admin/incidents/:id/status', async ({ params, request }) => {
+    await delay(600)
+    const body = await request.json() as { status: string; resolution?: string }
+    const incident = mockIncidents.find(i => i.id === params.id)
+    if (!incident) return HttpResponse.json({ error: 'NOT_FOUND' }, { status: 404 })
+    
+    incident.status = body.status as any
+    if (body.status === 'resolved') {
+      incident.resolved_at = new Date().toISOString()
+      if (body.resolution) {
+        incident.timeline.push({
+          id: `t_${Date.now()}`,
+          incident_id: incident.id,
+          message: body.resolution,
+          author: 'System',
+          created_at: new Date().toISOString()
+        })
+      }
+    }
+    return HttpResponse.json(incident)
+  }),
 ]

@@ -117,7 +117,7 @@ export default function ReceiptsPage() {
                       {receipt.protocol_name}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <Badge variant="developer">{receipt.retry_count} / 5</Badge>
+                      <Badge variant={receipt.retry_count >= 3 ? 'failed' : 'developer'}>{receipt.retry_count} / 3</Badge>
                     </td>
                     <td className="px-6 py-4 text-center text-text-muted">
                       <div className="flex items-center justify-center gap-1.5">

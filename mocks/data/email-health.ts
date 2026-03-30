@@ -11,13 +11,12 @@ export const mockEmailHealth: EmailHealth = {
   dmarc_status: 'pass',
   dedicated_ip: '54.240.1.1',
   warmup_complete: true,
-  reputation_history: [
-    { date: '2026-03-22', score: 97 },
-    { date: '2026-03-23', score: 98 },
-    { date: '2026-03-24', score: 98 },
-    { date: '2026-03-25', score: 97 },
-    { date: '2026-03-26', score: 98 },
-    { date: '2026-03-27', score: 99 },
-    { date: '2026-03-28', score: 98 },
-  ],
+  reputation_history: Array.from({ length: 30 }, (_, i) => {
+    const d = new Date('2026-03-22')
+    d.setDate(d.getDate() - (29 - i))
+    return {
+      date: d.toISOString().slice(0, 10),
+      score: 95 + Math.floor(Math.random() * 5),
+    }
+  }),
 }

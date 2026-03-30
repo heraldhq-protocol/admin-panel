@@ -1,4 +1,5 @@
 import { http, HttpResponse, delay } from 'msw'
+import { mockRecentActivity } from '../data/overview'
 
 const baseDate = new Date('2026-03-22')
 
@@ -25,7 +26,7 @@ export const overviewHandlers = [
       delivery_rate_delta: -0.4,
       open_incidents: 1,
       sends_per_day: sendsPerDay,
-      recent_activity: [],
+      recent_activity: mockRecentActivity,
     })
   }),
 ]

@@ -30,9 +30,9 @@ interface EmailHealth {
   complaint_rate_percent: number
   sending_quota_24h: number
   sends_last_24h: number
-  dkim_status: 'pass' | 'fail'
-  spf_status: 'pass' | 'fail'
-  dmarc_status: 'pass' | 'fail'
+  dkim_status: 'pass' | 'fail' | 'unknown'
+  spf_status: 'pass' | 'fail' | 'unknown'
+  dmarc_status: 'pass' | 'fail' | 'unknown'
   dedicated_ip: string
   warmup_complete: boolean
   reputation_history: Array<{ date: string; score: number }>
@@ -157,7 +157,7 @@ export default function EmailHealthPage() {
                     <span className="text-sm font-bold text-text-primary">{record.name}</span>
                     <span className="text-xs text-text-muted">{record.desc}</span>
                   </div>
-                  <Badge variant={record.status === 'pass' ? 'active' : 'failed'}>
+                  <Badge variant={record.status === 'pass' ? 'active' : record.status === 'fail' ? 'failed' : 'developer'}>
                     {record.status?.toUpperCase()}
                   </Badge>
                 </div>
@@ -167,11 +167,11 @@ export default function EmailHealthPage() {
             <div className="pt-4 border-t border-border">
               <div className="flex items-center justify-between text-xs text-text-muted mb-2">
                 <span>Sending Quota Used (24h)</span>
-                <span>{((health?.sends_last_24h ?? 0) / (health?.sending_quota_24h ?? 1) * 100).toFixed(1)}%</span>
+                <span>{health ? ((health.sends_last_24h / health.sending_quota_24h) * 100).toFixed(1) : '0'}%</span>
               </div>
-              <Progress value={((health?.sends_last_24h ?? 0) / (health?.sending_quota_24h ?? 1) * 100)} className="h-2" />
+              <Progress value={health ? (health.sends_last_24h / health.sending_quota_24h) * 100 : 0} className="h-2" />
               <div className="mt-2 text-[10px] text-text-muted">
-                {health?.sends_last_24h.toLocaleString()} / {health?.sending_quota_24h.toLocaleString()} msgs
+                {(health?.sends_last_24h ?? 0).toLocaleString()} / {(health?.sending_quota_24h ?? 0).toLocaleString()} msgs
               </div>
             </div>
           </Card>
@@ -183,7 +183,7 @@ export default function EmailHealthPage() {
               </div>
               <div>
                 <h4 className="text-sm font-bold text-text-primary">Dedicated IP</h4>
-                <p className="text-xs text-text-secondary mt-1">{health?.dedicated_ip}</p>
+                <p className="text-xs text-text-secondary mt-1">{health?.dedicated_ip ?? '—'}</p>
               </div>
             </div>
           </Card>

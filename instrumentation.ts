@@ -1,5 +1,9 @@
 export async function register() {
-  if (process.env.NEXT_RUNTIME === 'nodejs' && process.env.NODE_ENV === 'development') {
+  const shouldMock =
+    process.env.NODE_ENV === 'development' ||
+    process.env.ENABLE_MOCKS === 'true'
+
+  if (process.env.NEXT_RUNTIME === 'nodejs' && shouldMock) {
     try {
       const { server } = await import('./mocks/server')
       server.listen({ onUnhandledRequest: 'bypass' })
