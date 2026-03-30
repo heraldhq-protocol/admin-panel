@@ -1,6 +1,9 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
+import * as Dialog from '@radix-ui/react-dialog'
+import { toast } from 'sonner'
 import { 
   Users, 
   Plus, 
@@ -9,7 +12,8 @@ import {
   ExternalLink,
   ShieldCheck,
   Gem,
-  Calendar
+  Calendar,
+  X
 } from 'lucide-react'
 import { PageHeader } from '@/components/ui/page-header'
 import { Card } from '@/components/ui/card'
@@ -19,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import type { DesignPartner, PaginatedResponse } from '@/types/api'
 
 export default function DesignPartnersPage() {
+  const router = useRouter()
   const { data, isLoading } = useQuery<PaginatedResponse<DesignPartner>>({
     queryKey: ['design-partners'],
     queryFn: () => fetch('/api/admin/design-partners').then(res => res.json()),
@@ -33,10 +38,43 @@ export default function DesignPartnersPage() {
           title="Design Partners" 
           description="Manage high-priority protocol teams and exclusive access tiers."
         />
-        <Button variant="default" className="gap-2 shadow-lg shadow-teal/20">
-          <Plus className="h-4 w-4" />
-          Add Partner
-        </Button>
+        <Dialog.Root>
+          <Dialog.Trigger asChild>
+            <Button variant="default" className="gap-2 shadow-lg shadow-teal/20">
+              <Plus className="h-4 w-4" />
+              Add Partner
+            </Button>
+          </Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-in fade-in" />
+            <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-md bg-bg-elevated border border-border rounded-xl shadow-lg z-50 p-6 animate-in zoom-in-95 duration-200 focus:outline-none">
+              <div className="flex items-center justify-between mb-4">
+                <Dialog.Title className="text-lg font-syne font-bold text-text-primary">New VIP Partner</Dialog.Title>
+                <Dialog.Close className="text-text-muted hover:text-text-primary text-2xl h-8 w-8 flex items-center justify-center rounded-lg hover:bg-card-2">
+                  <X size={20} />
+                </Dialog.Close>
+              </div>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-text-muted uppercase tracking-wider">Protocol ID</label>
+                  <input type="text" placeholder="prot_1234abcd" className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-text-muted uppercase tracking-wider">Monthly Retainer ($)</label>
+                  <input type="number" placeholder="5000" className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal" />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <Dialog.Close asChild>
+                  <Button variant="ghost">Cancel</Button>
+                </Dialog.Close>
+                <Dialog.Close asChild>
+                  <Button onClick={() => toast.success('Dispatching partner onboarding invite.')}>Save Configuration</Button>
+                </Dialog.Close>
+              </div>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
       </div>
 
       {/* Stats Summary */}
@@ -83,7 +121,7 @@ export default function DesignPartnersPage() {
                 ))
               ) : (
                 partners?.map((partner) => (
-                  <tr key={partner.id} className="hover:bg-card-2 transition-colors">
+                  <tr key={partner.id} onClick={() => router.push(`/design-partners/${partner.id}`)} className="hover:bg-card-2 transition-colors cursor-pointer">
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
                         <span className="font-bold text-text-primary">{partner.protocol_name}</span>

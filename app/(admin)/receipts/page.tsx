@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
+import { useRetryAllReceipts } from '@/hooks/use-retry-all-receipts'
 
 interface FailedReceipt {
   id: string
@@ -28,10 +29,11 @@ interface FailedReceipt {
 
 export default function ReceiptsPage() {
   const queryClient = useQueryClient()
+  const { mutate: retryAll, isPending: isRetryingAll } = useRetryAllReceipts()
 
   const { data, isLoading } = useQuery<{ data: FailedReceipt[] }>({
     queryKey: ['receipts'],
-    queryFn: () => fetch('/api/admin/receipts').then(res => res.json()),
+    queryFn: () => fetch('/api/admin/receipts/failed').then(res => res.json()),
   })
 
   const retryMutation = useMutation({
@@ -66,8 +68,18 @@ export default function ReceiptsPage() {
             className="w-full bg-card border border-border rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-teal"
           />
         </div>
-        <Button variant="outline" size="sm" className="gap-2">
-          <RefreshCw className={retryMutation.isPending ? 'animate-spin h-4 w-4' : 'h-4 w-4'} />
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="gap-2"
+          onClick={() => {
+            if (confirm('Are you sure you want to retry ALL failed receipts across all protocols?')) {
+              retryAll()
+            }
+          }}
+          disabled={isRetryingAll}
+        >
+          <RefreshCw className={isRetryingAll ? 'animate-spin h-4 w-4' : 'h-4 w-4'} />
           Retry All
         </Button>
       </div>

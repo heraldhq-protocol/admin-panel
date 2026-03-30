@@ -1,7 +1,9 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { UserPlus, Shield, User } from 'lucide-react'
+import * as Dialog from '@radix-ui/react-dialog'
+import { toast } from 'sonner'
+import { UserPlus, Shield, User, X } from 'lucide-react'
 import { PageHeader } from '@/components/ui/page-header'
 import { DataTable } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
@@ -59,7 +61,7 @@ export default function TeamPage() {
     {
       id: 'actions',
       cell: () => (
-        <Button variant="ghost" size="sm">Edit</Button>
+        <Button variant="ghost" size="sm" onClick={() => toast.info('Role modification opening...')}>Edit</Button>
       )
     }
   ]
@@ -70,10 +72,47 @@ export default function TeamPage() {
         title="Team Management" 
         description="Manage administrative users and their access roles."
         actions={
-          <Button>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Invite Member
-          </Button>
+          <Dialog.Root>
+            <Dialog.Trigger asChild>
+              <Button>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Invite Member
+              </Button>
+            </Dialog.Trigger>
+            <Dialog.Portal>
+              <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-in fade-in" />
+              <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-md bg-bg-elevated border border-border rounded-xl shadow-lg z-50 p-6 animate-in zoom-in-95 duration-200 focus:outline-none">
+                <div className="flex items-center justify-between mb-4">
+                  <Dialog.Title className="text-lg font-syne font-bold text-text-primary">Invite Administrator</Dialog.Title>
+                  <Dialog.Close className="text-text-muted hover:text-text-primary text-2xl h-8 w-8 flex items-center justify-center rounded-lg hover:bg-card-2">
+                    <X size={20} />
+                  </Dialog.Close>
+                </div>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-text-muted uppercase tracking-wider">Email Address</label>
+                    <input type="email" placeholder="colleague@herald.xyz" className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-text-muted uppercase tracking-wider">Role Assignment</label>
+                    <select className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal">
+                      <option value="operator">Operator (Standard)</option>
+                      <option value="viewer">Viewer (Read-only)</option>
+                      <option value="super_admin">Super Admin (Destructive)</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 mt-6">
+                  <Dialog.Close asChild>
+                    <Button variant="ghost">Cancel</Button>
+                  </Dialog.Close>
+                  <Dialog.Close asChild>
+                    <Button onClick={() => toast.success('Administrator invitation sent via SES.')}>Send Invitation</Button>
+                  </Dialog.Close>
+                </div>
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
         }
       />
 

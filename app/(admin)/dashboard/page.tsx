@@ -1,5 +1,7 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import {
   XAxis,
   YAxis,
@@ -45,6 +47,7 @@ interface ProtocolItem {
 }
 
 export default function DashboardPage() {
+  const router = useRouter()
   const { data: overview } = useQuery<OverviewData>({
     queryKey: ['overview'],
     queryFn: () => fetch('/api/admin/overview').then(res => res.json()),
@@ -156,7 +159,7 @@ export default function DashboardPage() {
         <Card className="flex flex-col gap-6" padding="lg">
           <div className="flex items-center justify-between">
             <h3 className="font-syne text-lg font-bold">Top Protocols</h3>
-            <Button variant="ghost" size="sm" className="h-7 text-xs">View All</Button>
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => router.push('/protocols')}>View All</Button>
           </div>
 
           <div className="space-y-4">
@@ -192,7 +195,7 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card padding="md" className="group hover:border-teal/50 transition-colors cursor-pointer border-dashed">
+        <Card padding="md" className="group hover:border-teal/50 transition-colors cursor-pointer border-dashed" onClick={() => toast.info('Instant Broadcast configuration opening soon...')}>
           <div className="flex items-center gap-4">
             <div className="h-10 w-10 rounded-xl bg-teal/10 flex items-center justify-center text-teal">
               <Zap size={20} />
@@ -205,7 +208,7 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        <Card padding="md" className="group hover:border-admin/50 transition-colors cursor-pointer border-dashed">
+        <Card padding="md" className="group hover:border-admin/50 transition-colors cursor-pointer border-dashed" onClick={() => router.push('/incidents')}>
           <div className="flex items-center gap-4">
             <div className="h-10 w-10 rounded-xl bg-admin-bg flex items-center justify-center text-admin">
               <ShieldAlert size={20} />
@@ -218,7 +221,7 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        <Card padding="md" className="group hover:border-purple/50 transition-colors cursor-pointer border-dashed">
+        <Card padding="md" className="group hover:border-purple/50 transition-colors cursor-pointer border-dashed" onClick={() => router.push('/team')}>
           <div className="flex items-center gap-4">
             <div className="h-10 w-10 rounded-xl bg-purple/10 flex items-center justify-center text-purple">
               <Users size={20} />

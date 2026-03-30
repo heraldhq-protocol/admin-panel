@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { Search, Filter, Download } from 'lucide-react'
 import { PageHeader } from '@/components/ui/page-header'
@@ -11,6 +12,7 @@ import { QUERY_KEYS } from '@/lib/query-keys'
 import { truncateHash, formatRelativeTime } from '@/lib/format'
 
 export default function NotificationsPage() {
+  const router = useRouter()
   const [page, setPage] = React.useState(1)
 
   const { data, isLoading } = useQuery({
@@ -109,6 +111,7 @@ export default function NotificationsPage() {
         columns={columns as any} 
         data={data?.data || []} 
         isLoading={isLoading}
+        onRowClick={(row: any) => router.push(`/notifications/${row.id}`)}
       />
 
       <div className="flex items-center justify-between">

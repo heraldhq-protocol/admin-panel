@@ -5,7 +5,7 @@ export const teamHandlers = [
   // GET all team members
   http.get('/api/admin/team', async () => {
     await delay(500)
-    return HttpResponse.json(mockTeam)
+    return HttpResponse.json({ data: mockTeam, total: mockTeam.length })
   }),
 
   // POST invite team member
