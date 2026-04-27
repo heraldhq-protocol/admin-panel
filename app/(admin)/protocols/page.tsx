@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { QUERY_KEYS } from '@/lib/query-keys'
 import { truncateAddress } from '@/lib/format'
+import { adminLiveApi } from '@/lib/admin-live-api'
 
 export default function ProtocolsPage() {
   const router = useRouter()
@@ -21,7 +22,7 @@ export default function ProtocolsPage() {
   const { data, isLoading } = useQuery({
     queryKey: QUERY_KEYS.protocols({ search, page }),
     queryFn: () => 
-      fetch(`/api/admin/protocols?search=${search}&page=${page}`).then(res => res.json()),
+      adminLiveApi.getProtocols({ search, page, per_page: 20 }),
   })
 
   const columns = [

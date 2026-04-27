@@ -2,7 +2,14 @@ import { http, HttpResponse, delay } from 'msw'
 import { mockProtocols } from '../data/protocols'
 
 export const protocolHandlers = [
-  // GET all protocols
+  // LIVE (no MSW handler): GET /v1/admin/protocols
+  // LIVE (no MSW handler): GET /v1/admin/protocols/:id
+  // LIVE (no MSW handler): POST /v1/admin/protocols/:id/suspend
+  // LIVE (no MSW handler): POST /v1/admin/protocols/:id/reactivate
+  //
+  // Remaining endpoints below stay mocked until backend implements them per ENDPOINTS.md.
+  //
+  // GET all protocols (mock)
   http.get('/api/admin/protocols', async ({ request }) => {
     await delay(400)
     const url = new URL(request.url)
@@ -41,7 +48,7 @@ export const protocolHandlers = [
     })
   }),
 
-  // GET single protocol
+  // GET single protocol (mock)
   http.get('/api/admin/protocols/:id', async ({ params }) => {
     await delay(300)
     const protocol = mockProtocols.find(p => p.id === params.id)
@@ -49,7 +56,7 @@ export const protocolHandlers = [
     return HttpResponse.json(protocol)
   }),
 
-  // PUT suspend protocol
+  // PUT suspend protocol (mock)
   http.put('/api/admin/protocols/:id/suspend', async ({ params, request }) => {
     await delay(600)
     const body = await request.json() as { reason: string }
@@ -61,7 +68,7 @@ export const protocolHandlers = [
     return HttpResponse.json(protocol)
   }),
 
-  // PUT unsuspend protocol
+  // PUT unsuspend protocol (mock)
   http.put('/api/admin/protocols/:id/unsuspend', async ({ params }) => {
     await delay(600)
     const protocol = mockProtocols.find(p => p.id === params.id)

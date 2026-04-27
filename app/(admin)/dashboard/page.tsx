@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { QUERY_KEYS } from '@/lib/query-keys'
+import { adminLiveApi } from '@/lib/admin-live-api'
 
 interface OverviewData {
   total_protocols: number
@@ -53,9 +54,17 @@ export default function DashboardPage() {
     queryFn: () => fetch('/api/admin/overview').then(res => res.json()),
   })
 
+  const { data: metrics, isLoading: metricsLoading } = useQuery({
+    queryKey: ['admin-metrics'],
+    queryFn: () => adminLiveApi.getMetrics(),
+  })
+
   const { data: protocols, isLoading: protocolsLoading } = useQuery<{ data: ProtocolItem[]; total: number }>({
     queryKey: QUERY_KEYS.protocols({ per_page: 5 }),
-    queryFn: () => fetch('/api/admin/protocols?per_page=5').then(res => res.json()),
+    queryFn: async () => {
+      const r = await adminLiveApi.getProtocols({ per_page: 5, page: 1 })
+      return r as any
+    },
   })
 
   return (
@@ -72,9 +81,9 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Total Protocols"
-          value={overview?.total_protocols ?? 25}
-          delta={overview?.total_protocols_delta ?? 3}
-          trend="up"
+          value={metricsLoading ? '—' : (metrics?.totalProtocols ?? '—')}
+          delta={0}
+          trend="neutral"
         />
         <StatCard
           label="Sends Today"

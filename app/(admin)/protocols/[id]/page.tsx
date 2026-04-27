@@ -20,6 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { QUERY_KEYS } from '@/lib/query-keys'
 import { formatRelativeTime, formatTier } from '@/lib/format'
 import { toast } from 'sonner'
+import { adminLiveApi } from '@/lib/admin-live-api'
 
 export default function ProtocolDetailsPage() {
   const params = useParams()
@@ -29,15 +30,12 @@ export default function ProtocolDetailsPage() {
 
   const { data: protocol, isLoading } = useQuery({
     queryKey: QUERY_KEYS.protocol(id),
-    queryFn: () => fetch(`/api/admin/protocols/${id}`).then(res => res.json()),
+    queryFn: () => adminLiveApi.getProtocol(id),
   })
 
   const suspendMutation = useMutation({
     mutationFn: (reason: string) => 
-      fetch(`/api/admin/protocols/${id}/suspend`, {
-        method: 'PUT',
-        body: JSON.stringify({ reason }),
-      }).then(res => res.json()),
+      adminLiveApi.suspendProtocol(id, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.protocol(id) })
       toast.error('Protocol suspended')
@@ -46,7 +44,7 @@ export default function ProtocolDetailsPage() {
 
   const unsuspendMutation = useMutation({
     mutationFn: () => 
-      fetch(`/api/admin/protocols/${id}/unsuspend`, { method: 'PUT' }).then(res => res.json()),
+      adminLiveApi.reactivateProtocol(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.protocol(id) })
       toast.success('Protocol reactivated')
