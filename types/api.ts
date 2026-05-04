@@ -32,6 +32,7 @@ export interface Protocol {
   stripe_customer_id: string | null
   contact_email_hash: string        // SHA-256 — NEVER plaintext
   design_partner: boolean
+  admin_notes: string | null          // internal admin notes — never shown to protocol
 }
 
 export interface Notification {

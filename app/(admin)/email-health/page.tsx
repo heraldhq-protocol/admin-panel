@@ -1,48 +1,27 @@
+/* eslint-disable import/no-default-export */
+// Required: Next.js App Router pages must use default export
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-import { 
-  ShieldCheck, 
-  Activity, 
-  TrendingUp, 
-  Mail, 
-  Server,
-  AlertCircle
-} from 'lucide-react'
-import { 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip as RechartsTooltip, 
-  ResponsiveContainer, 
-  AreaChart, 
-  Area 
+import { ShieldCheck, Activity, TrendingUp, Mail, Server, AlertCircle } from 'lucide-react'
+import {
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
 } from 'recharts'
+
 import { PageHeader } from '@/components/ui/page-header'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Progress } from '@/components/ui/progress'
-
-interface EmailHealth {
-  reputation_score: number
-  bounce_rate_percent: number
-  complaint_rate_percent: number
-  sending_quota_24h: number
-  sends_last_24h: number
-  dkim_status: 'pass' | 'fail' | 'unknown'
-  spf_status: 'pass' | 'fail' | 'unknown'
-  dmarc_status: 'pass' | 'fail' | 'unknown'
-  dedicated_ip: string
-  warmup_complete: boolean
-  reputation_history: Array<{ date: string; score: number }>
-}
+import { useEmailHealth } from '@/hooks/use-email-health'
 
 export default function EmailHealthPage() {
-  const { data: health, isLoading } = useQuery<EmailHealth>({
-    queryKey: ['email-health'],
-    queryFn: () => fetch('/api/admin/email-health').then(res => res.json()),
-  })
+  const { data: health, isLoading } = useEmailHealth()
 
   if (isLoading) {
     return (

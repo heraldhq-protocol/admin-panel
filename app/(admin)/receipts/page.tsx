@@ -1,86 +1,55 @@
+/* eslint-disable import/no-default-export */
+// Required: Next.js App Router pages must use default export
 'use client'
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { 
-  RefreshCw, 
-  Search, 
-  AlertCircle,
-  Clock
-} from 'lucide-react'
+import { Search, RefreshCw, AlertCircle, Clock } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
+
 import { PageHeader } from '@/components/ui/page-header'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { toast } from 'sonner'
-import { formatDistanceToNow } from 'date-fns'
+import { useReceiptQueue } from '@/hooks/use-receipt-queue'
+import { useRetryReceipt } from '@/hooks/use-retry-receipt'
 import { useRetryAllReceipts } from '@/hooks/use-retry-all-receipts'
-
-interface FailedReceipt {
-  id: string
-  notification_id: string
-  protocol_id: string
-  protocol_name: string
-  failure_reason: string
-  retry_count: number
-  last_attempted_at: string
-  created_at: string
-}
+import type { FailedReceipt } from '@/types/api'
 
 export default function ReceiptsPage() {
-  const queryClient = useQueryClient()
-  const { mutate: retryAll, isPending: isRetryingAll } = useRetryAllReceipts()
-
-  const { data, isLoading } = useQuery<{ data: FailedReceipt[] }>({
-    queryKey: ['receipts'],
-    queryFn: () => fetch('/api/admin/receipts/failed').then(res => res.json()),
-  })
-
-  const retryMutation = useMutation({
-    mutationFn: (id: string) => 
-      fetch(`/api/admin/receipts/${id}/retry`, { method: 'POST' }).then(async res => {
-        if (!res.ok) throw new Error((await res.json()).error)
-        return res.json()
-      }),
-    onSuccess: () => {
-      toast.success('Retry batch scheduled successfully')
-      queryClient.invalidateQueries({ queryKey: ['receipts'] })
-    },
-    onError: (err: Error) => {
-      toast.error(`Retry failed: ${err.message}`)
-    }
-  })
+  const { data: receipts, isLoading } = useReceiptQueue()
+  const retryOne = useRetryReceipt()
+  const retryAll = useRetryAllReceipts()
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader 
-        title="Retryable Failures" 
-        description="Manage failed notification receipts and trigger manual retries."
+      <PageHeader
+        title="Retryable Failures"
+        description="Failed ZK receipt writes after 3 automatic attempts. Trigger manual retries via Light Protocol CPI."
       />
 
-      {/* Filters/Search */}
       <div className="flex items-center justify-between gap-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
           <input
             type="text"
-            placeholder="Search by Protocol or ID..."
+            placeholder="Search by protocol or notification ID…"
             className="w-full bg-card border border-border rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-teal"
+            readOnly
           />
         </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           className="gap-2"
+          disabled={isLoading || retryAll.isPending || (receipts?.length ?? 0) === 0}
           onClick={() => {
-            if (confirm('Are you sure you want to retry ALL failed receipts across all protocols?')) {
-              retryAll()
+            if (confirm('Retry ALL failed receipts? This will attempt a ZK write for each one.')) {
+              retryAll.mutate()
             }
           }}
-          disabled={isRetryingAll}
         >
-          <RefreshCw className={isRetryingAll ? 'animate-spin h-4 w-4' : 'h-4 w-4'} />
-          Retry All
+          <RefreshCw className={retryAll.isPending ? 'animate-spin h-4 w-4' : 'h-4 w-4'} />
+          Retry All {receipts && receipts.length > 0 ? `(${receipts.length})` : ''}
         </Button>
       </div>
 
@@ -97,60 +66,64 @@ export default function ReceiptsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}>
-                    <td className="px-6 py-4"><Skeleton className="h-4 w-48" /></td>
-                    <td className="px-6 py-4 text-center"><Skeleton className="h-4 w-32 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Skeleton className="h-4 w-12 mx-auto" /></td>
-                    <td className="px-6 py-4 text-center"><Skeleton className="h-4 w-24 mx-auto" /></td>
-                    <td className="px-6 py-4 text-right"><Skeleton className="h-8 w-20 ml-auto" /></td>
-                  </tr>
-                ))
-              ) : data?.data?.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-20 text-center text-text-muted">
-                    No retryable failures found.
-                  </td>
-                </tr>
-              ) : (
-                data?.data?.map((receipt) => (
-                  <tr key={receipt.id} className="hover:bg-card-2 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1">
-                        <span className="font-mono text-xs text-teal">{receipt.notification_id}</span>
-                        <div className="flex items-center gap-1.5 text-text-secondary">
-                          <AlertCircle className="h-3.5 w-3.5 text-red shrink-0" />
-                          <span className="truncate max-w-[300px]">{receipt.failure_reason}</span>
+              {isLoading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <tr key={i}>
+                      <td className="px-6 py-4"><Skeleton className="h-4 w-48" /></td>
+                      <td className="px-6 py-4 text-center"><Skeleton className="h-4 w-32 mx-auto" /></td>
+                      <td className="px-6 py-4 text-center"><Skeleton className="h-4 w-12 mx-auto" /></td>
+                      <td className="px-6 py-4 text-center"><Skeleton className="h-4 w-24 mx-auto" /></td>
+                      <td className="px-6 py-4 text-right"><Skeleton className="h-8 w-20 ml-auto" /></td>
+                    </tr>
+                  ))
+                : receipts?.length === 0
+                ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-20 text-center text-text-muted">
+                        No failed receipts. ZK write queue is clear.
+                      </td>
+                    </tr>
+                  )
+                : receipts?.map((receipt: FailedReceipt) => (
+                    <tr key={receipt.id} className="hover:bg-card-2 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <span className="font-mono text-xs text-teal">{receipt.notification_id}</span>
+                          <div className="flex items-center gap-1.5 text-text-secondary">
+                            <AlertCircle className="h-3.5 w-3.5 text-red shrink-0" />
+                            <span className="truncate max-w-[300px]">{receipt.failure_reason}</span>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center font-medium">
-                      {receipt.protocol_name}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <Badge variant={receipt.retry_count >= 3 ? 'failed' : 'developer'}>{receipt.retry_count} / 3</Badge>
-                    </td>
-                    <td className="px-6 py-4 text-center text-text-muted">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <Clock className="h-3.5 w-3.5" />
-                        {formatDistanceToNow(new Date(receipt.last_attempted_at), { addSuffix: true })}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right pr-10">
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="h-8 shadow-none"
-                        onClick={() => retryMutation.mutate(receipt.id)}
-                        disabled={retryMutation.isPending}
-                      >
-                        Retry
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
+                      </td>
+                      <td className="px-6 py-4 text-center font-medium">
+                        {receipt.protocol_name}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <Badge variant={receipt.retry_count >= 3 ? 'failed' : 'developer'}>
+                          {receipt.retry_count} / 3
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 text-center text-text-muted">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <Clock className="h-3.5 w-3.5" />
+                          <span className="text-xs">
+                            {formatDistanceToNow(new Date(receipt.last_attempted_at), { addSuffix: true })}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right pr-10">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="h-8 shadow-none"
+                          disabled={retryOne.isPending}
+                          onClick={() => retryOne.mutate(receipt.id)}
+                        >
+                          Retry
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
             </tbody>
           </table>
         </div>

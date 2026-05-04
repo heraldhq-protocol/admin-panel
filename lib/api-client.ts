@@ -65,6 +65,10 @@ export const apiClient = {
   retryAllReceipts: () =>
     client.post<{ retried: number; succeeded: number; failed: number }>('/receipts/retry-all').then(r => r.data),
 
+  // Metrics
+  getMetrics: () =>
+    client.get<{ activeProtocols: number; totalWebhooks: number; notificationsSent: number }>('/metrics').then(r => r.data),
+
   // Email Health
   getEmailHealth: () =>
     client.get<EmailHealth>('/email-health').then(r => r.data),

@@ -1,6 +1,12 @@
 import type { ProtocolFilters, NotificationFilters, IncidentFilters } from '../types'
 
 export const QUERY_KEYS = {
+  overview: () =>
+    ['overview'] as const,
+
+  metrics: () =>
+    ['metrics'] as const,
+
   protocols: (filters?: ProtocolFilters) =>
     ['protocols', filters] as const,
 

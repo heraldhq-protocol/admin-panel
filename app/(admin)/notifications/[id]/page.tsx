@@ -1,15 +1,19 @@
+/* eslint-disable import/no-default-export */
+// Required: Next.js App Router pages must use default export
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Clock, AlertCircle, ExternalLink, Activity } from 'lucide-react'
 import Link from 'next/link'
+
 import { PageHeader } from '@/components/ui/page-header'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { apiClient } from '@/lib/api-client'
+import { QUERY_KEYS } from '@/lib/query-keys'
 import { formatRelativeTime, truncateHash } from '@/lib/format'
 
 export default function NotificationDetail() {
@@ -18,7 +22,7 @@ export default function NotificationDetail() {
   const id = params.id as string
 
   const { data: notification, isLoading, isError } = useQuery({
-    queryKey: ['notification', id],
+    queryKey: QUERY_KEYS.notification(id),
     queryFn: () => apiClient.getNotification(id),
     enabled: !!id,
   })
