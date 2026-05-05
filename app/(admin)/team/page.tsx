@@ -46,8 +46,8 @@ export default function TeamPage() {
         display_name: invite.display_name,
         role: invite.role,
         auth_method: invite.auth_method,
-        email: invite.auth_method === 'email-totp' ? invite.email : undefined,
-        wallet_address: invite.auth_method === 'wallet' ? invite.wallet_address : undefined,
+        ...(invite.auth_method === 'email-totp' && invite.email ? { email: invite.email } : {}),
+        ...(invite.auth_method === 'wallet' && invite.wallet_address ? { wallet_address: invite.wallet_address } : {}),
       },
       {
         onSuccess: () => {

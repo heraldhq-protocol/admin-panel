@@ -36,7 +36,7 @@ async function proxy(
   const upstream = await fetch(targetUrl, {
     method: req.method,
     headers,
-    body,
+    ...(body !== undefined ? { body } : {}),
   })
 
   const contentType = upstream.headers.get('content-type') ?? ''

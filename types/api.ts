@@ -123,6 +123,24 @@ export interface TeamMember {
 }
 
 
+export interface OverviewStats {
+  sends_today: number
+  sends_today_delta: number
+  delivery_rate_24h: number
+  delivery_rate_delta: number
+  open_incidents: number
+  recent_activity: Array<{
+    id: string
+    description: string
+    created_at: string
+  }>
+  sends_per_day: Array<{
+    date: string
+    sends: number
+  }>
+}
+
+
 // ─── Shared response shapes ────────────────────────────────────────────
 export interface PaginatedResponse<T> {
   data: T[]

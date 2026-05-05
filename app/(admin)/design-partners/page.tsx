@@ -43,7 +43,7 @@ export default function DesignPartnersPage() {
         retainer_amount_cents: cents,
         retainer_start: form.retainer_start,
         equity_warrant_issued: form.equity_warrant_issued,
-        notes: form.notes || undefined,
+        ...(form.notes ? { notes: form.notes } : {}),
       },
       {
         onSuccess: () => {

@@ -21,7 +21,11 @@ export default function ProtocolsPage() {
   const [page, setPage] = React.useState(1)
   const debouncedSearch = useDebounce(search, 300)
 
-  const { data, isLoading } = useProtocols({ search: debouncedSearch || undefined, page, per_page: 20 })
+  const { data, isLoading } = useProtocols({
+    ...(debouncedSearch ? { search: debouncedSearch } : {}),
+    page,
+    per_page: 20,
+  })
 
   const columns = [
     {

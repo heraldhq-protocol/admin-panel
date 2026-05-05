@@ -37,8 +37,7 @@ export default function DashboardPage() {
   const { data: metrics, isLoading: metricsLoading } = useMetrics()
   const { data: protocols, isLoading: protocolsLoading } = useProtocols({ per_page: 5, page: 1 })
 
-  const sendsPerDay: Array<{ date: string; sends: number }> =
-    (overview as unknown as Record<string, unknown>)?.sends_per_day as Array<{ date: string; sends: number }> ?? []
+  const sendsPerDay = overview?.sends_per_day ?? []
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -137,7 +136,7 @@ export default function DashboardPage() {
                       borderRadius: '8px',
                       fontSize: '12px',
                     }}
-                    formatter={(v: number) => [`${(Number(v) / 1000).toFixed(1)}K`, 'Sends']}
+                    formatter={(v: any) => [`${(Number(v || 0) / 1000).toFixed(1)}K`, 'Sends']}
                   />
                   <Area
                     type="monotone"

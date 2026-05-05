@@ -29,9 +29,9 @@ export default function NotificationsPage() {
   const { data, isLoading } = useNotifications({
     page,
     per_page: 50,
-    status: status || undefined,
-    category: category || undefined,
-    protocol_id: search.length > 5 ? search : undefined,
+    ...(status ? { status } : {}),
+    ...(category ? { category } : {}),
+    ...(search.length > 5 ? { protocol_id: search } : {}),
   })
 
   const handleExport = () => {

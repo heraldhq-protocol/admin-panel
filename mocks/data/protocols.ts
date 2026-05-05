@@ -15,6 +15,7 @@ export const mockProtocols: Protocol[] = [
     stripe_customer_id: 'cus_Pq8mNk3xRs9Vb',
     contact_email_hash: 'a3f8b2c1d9e4f7a0b5c2d1e8f3a6b9c4',
     design_partner: true,
+    admin_notes: null,
   },
   {
     id: '01HXKP9M2Q3R5S6T7U8V9W0Y',
@@ -30,6 +31,7 @@ export const mockProtocols: Protocol[] = [
     stripe_customer_id: 'cus_Zb7pKm2xQr4Vs',
     contact_email_hash: 'b5c2d1e8f3a6b9c4a3f8b2c1d9e4f7a0',
     design_partner: true,
+    admin_notes: null,
   },
   {
     id: '01HXKP9M2Q3R5S6T7U8V9W0Z',
@@ -45,6 +47,7 @@ export const mockProtocols: Protocol[] = [
     stripe_customer_id: 'cus_Qy9mNk4xRs2Vb',
     contact_email_hash: 'c6d3e1f9a3b6c9d4b5c2d1e8f3a6b9c4',
     design_partner: false,
+    admin_notes: null,
   },
   {
     id: '01HXKP9M2Q3R5S6T7U8V9W1A',
@@ -60,6 +63,7 @@ export const mockProtocols: Protocol[] = [
     stripe_customer_id: 'cus_Rx0mNk5xRs3Vc',
     contact_email_hash: 'd7e4f2a0b4c7d0e5c6d3e1f9a3b6c9d4',
     design_partner: false,
+    admin_notes: null,
   },
   {
     id: '01HXKP9M2Q3R5S6T7U8V9W1B',
@@ -75,6 +79,7 @@ export const mockProtocols: Protocol[] = [
     stripe_customer_id: 'cus_Sx1mNk6xRs4Vd',
     contact_email_hash: 'e8f5a3b1c5d8e1f6d7e4f2a0b4c7d0e5',
     design_partner: false,
+    admin_notes: null,
   },
   // Adding more entries to reach the target of 20+
   ...Array.from({ length: 15 }).map((_, i) => ({
@@ -91,5 +96,6 @@ export const mockProtocols: Protocol[] = [
     stripe_customer_id: `cus_test_${i}`,
     contact_email_hash: `hash_${i}_example_sha256`,
     design_partner: false,
+    admin_notes: null,
   }))
 ]
