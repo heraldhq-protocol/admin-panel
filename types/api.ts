@@ -32,6 +32,7 @@ export interface Protocol {
   stripe_customer_id: string | null
   contact_email_hash: string        // SHA-256 — NEVER plaintext
   design_partner: boolean
+  admin_notes: string | null          // internal admin notes — never shown to protocol
 }
 
 export interface Notification {
@@ -119,6 +120,24 @@ export interface TeamMember {
   wallet_address_hash: string | null  // SHA-256 if wallet auth
   last_active_at: string | null
   created_at: string
+}
+
+
+export interface OverviewStats {
+  sends_today: number
+  sends_today_delta: number
+  delivery_rate_24h: number
+  delivery_rate_delta: number
+  open_incidents: number
+  recent_activity: Array<{
+    id: string
+    description: string
+    created_at: string
+  }>
+  sends_per_day: Array<{
+    date: string
+    sends: number
+  }>
 }
 
 

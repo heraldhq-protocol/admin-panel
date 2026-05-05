@@ -1,7 +1,8 @@
+/* eslint-disable import/no-default-export */
+// Required: Next.js App Router pages must use default export
 'use client'
 import * as React from 'react'
 import { cn } from '@/lib/cn'
-import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { Plus, Search, Filter, X } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
@@ -10,18 +11,20 @@ import { PageHeader } from '@/components/ui/page-header'
 import { DataTable } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { QUERY_KEYS } from '@/lib/query-keys'
 import { truncateAddress } from '@/lib/format'
+import { useProtocols } from '@/hooks/use-protocols'
+import { useDebounce } from '@/hooks/use-debounce'
 
 export default function ProtocolsPage() {
   const router = useRouter()
   const [search, setSearch] = React.useState('')
   const [page, setPage] = React.useState(1)
+  const debouncedSearch = useDebounce(search, 300)
 
-  const { data, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.protocols({ search, page }),
-    queryFn: () => 
-      fetch(`/api/admin/protocols?search=${search}&page=${page}`).then(res => res.json()),
+  const { data, isLoading } = useProtocols({
+    ...(debouncedSearch ? { search: debouncedSearch } : {}),
+    page,
+    per_page: 20,
   })
 
   const columns = [

@@ -24,6 +24,7 @@ const badgeVariants = cva(
         delivered:  'bg-green/10 text-green border-green/20',
         failed:     'bg-red/10 text-red border-red/20',
         queued:     'bg-teal-bg text-teal border-teal/20',
+        processing: 'bg-gold/10 text-gold border-gold/20',
         opted_out:  'bg-card-2 text-text-muted border-border',
       },
     },

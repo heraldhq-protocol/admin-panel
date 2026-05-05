@@ -1,43 +1,33 @@
-
+import { auth } from '../../../lib/auth'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
-  const encoder = new TextEncoder()
-  const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ status: 'connected' })}\n\n`))
-      
-      const eventInterval = setInterval(() => {
-        if (Math.random() > 0.85) {
-          const events = [
-            { type: 'new_incident', data: { severity: 'P2', title: 'Periodic Latency Spike Detected' } },
-            { type: 'receipt_failure', data: { protocol: 'Jito', reason: 'RPC timeout' } },
-            { type: 'protocol_suspended', data: { protocolId: '01HAXV8Y1A' } },
-          ]
-          const ev = events[Math.floor(Math.random() * events.length)]
-          controller.enqueue(encoder.encode(`event: ${ev?.type}\ndata: ${JSON.stringify(ev?.data)}\n\n`))
-        }
-      }, 15000)
+const BACKEND_URL = process.env.HERALD_BACKEND_URL ?? 'http://localhost:3001/v1'
+const ADMIN_KEY = process.env.HERALD_ADMIN_KEY ?? ''
 
-      const keepAliveInterval = setInterval(() => {
-        controller.enqueue(encoder.encode(`:\n\n`))
-      }, 30000)
+export async function GET(): Promise<Response> {
+  const session = await auth()
+  if (!session) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
-      // Auto close mock stream after 2 hours
-      setTimeout(() => {
-        clearInterval(eventInterval)
-        clearInterval(keepAliveInterval)
-        try { controller.close() } catch (e) {}
-      }, 7200000)
-    }
+  const upstream = await fetch(`${BACKEND_URL}/admin/stream`, {
+    headers: {
+      'x-herald-admin-key': ADMIN_KEY,
+      accept: 'text/event-stream',
+      'cache-control': 'no-cache',
+    },
   })
 
-  return new Response(stream, {
+  if (!upstream.ok || !upstream.body) {
+    return new Response(upstream.body, { status: upstream.status })
+  }
+
+  return new Response(upstream.body, {
     headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache, no-transform',
-      'Connection': 'keep-alive',
+      'content-type': 'text/event-stream',
+      'cache-control': 'no-cache, no-transform',
+      connection: 'keep-alive',
     },
   })
 }

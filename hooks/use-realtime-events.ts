@@ -35,12 +35,6 @@ export function useRealtimeEvents() {
   }, [queryClient])
 
   useEffect(() => {
-    const shouldConnect =
-      process.env.NODE_ENV === 'development' ||
-      process.env.NEXT_PUBLIC_ENABLE_MOCKS === 'true'
-
-    if (!shouldConnect) return
-
     const eventSource = new EventSource('/api/stream')
 
     for (const type of ['new_incident', 'receipt_failure', 'protocol_suspended', 'email_alarm']) {

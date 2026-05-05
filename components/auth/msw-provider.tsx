@@ -6,9 +6,7 @@ export function MswProvider({ children }: { children: React.ReactNode }) {
   const [mswReady, setMswReady] = useState(false)
 
   useEffect(() => {
-    const shouldMock =
-      process.env.NODE_ENV === 'development' ||
-      process.env.NEXT_PUBLIC_ENABLE_MOCKS === 'true'
+    const shouldMock = process.env.NEXT_PUBLIC_ENABLE_MOCKS === 'true'
 
     const initMsw = async () => {
       if (typeof window !== 'undefined' && shouldMock) {

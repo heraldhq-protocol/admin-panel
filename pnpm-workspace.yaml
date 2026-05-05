@@ -1,0 +1,5 @@
+onlyBuiltDependencies:
+  - bufferutil
+  - msw
+  - sharp
+  - utf-8-validate

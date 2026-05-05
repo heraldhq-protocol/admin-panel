@@ -12,6 +12,7 @@ import type {
   ProtocolFilters,
   NotificationFilters,
   IncidentFilters,
+  OverviewStats,
 } from '../types/api'
 import type { Tier } from '../types/billing'
 
@@ -35,7 +36,7 @@ client.interceptors.response.use(
 export const apiClient = {
   // Overview
   getOverview: () =>
-    client.get('/overview').then(r => r.data),
+    client.get<OverviewStats>('/overview').then(r => r.data),
 
   // Protocols
   getProtocols: (filters?: ProtocolFilters) =>
@@ -64,6 +65,10 @@ export const apiClient = {
     client.post<{ success: boolean; tx?: string; error?: string }>(`/receipts/${id}/retry`).then(r => r.data),
   retryAllReceipts: () =>
     client.post<{ retried: number; succeeded: number; failed: number }>('/receipts/retry-all').then(r => r.data),
+
+  // Metrics
+  getMetrics: () =>
+    client.get<{ activeProtocols: number; totalWebhooks: number; notificationsSent: number }>('/metrics').then(r => r.data),
 
   // Email Health
   getEmailHealth: () =>
