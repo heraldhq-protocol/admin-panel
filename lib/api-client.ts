@@ -13,6 +13,9 @@ import type {
   NotificationFilters,
   IncidentFilters,
   OverviewStats,
+  ModerationQueueItem,
+  ModerationFilters,
+  AuditLogEntry,
 } from '../types/api'
 import type { Tier } from '../types/billing'
 
@@ -97,6 +100,26 @@ export const apiClient = {
     client.put<Incident>(`/incidents/${id}/status`, data).then(r => r.data),
   addTimelineEntry: (id: string, message: string) =>
     client.post<IncidentTimelineEntry>(`/incidents/${id}/timeline`, { message }).then(r => r.data),
+
+  // Protocol actions
+  verifyProtocol: (id: string, note?: string) =>
+    client.put<Protocol>(`/protocols/${id}/verify`, { note }).then(r => r.data),
+  rejectVerification: (id: string, note: string) =>
+    client.put<Protocol>(`/protocols/${id}/reject-verification`, { note }).then(r => r.data),
+  getProtocolAuditLog: (id: string, params?: { page?: number; per_page?: number }) =>
+    client.get<PaginatedResponse<AuditLogEntry>>(`/protocols/${id}/audit-log`, { params }).then(r => r.data),
+
+  // Moderation
+  getModerationQueue: (filters?: ModerationFilters) =>
+    client.get<PaginatedResponse<ModerationQueueItem>>('/moderation/queue', { params: filters }).then(r => r.data),
+  getModerationQueueItem: (id: string) =>
+    client.get<ModerationQueueItem>(`/moderation/queue/${id}`).then(r => r.data),
+  approveModeration: (id: string) =>
+    client.post<{ success: boolean; resolution: string }>(`/moderation/${id}/approve`).then(r => r.data),
+  strikeProtocol: (id: string, data: { reason: string; suspend?: boolean }) =>
+    client.post<{ success: boolean; strike_count: number; suspended: boolean }>(`/moderation/${id}/strike`, data).then(r => r.data),
+  dismissModeration: (id: string) =>
+    client.post<{ success: boolean; resolution: string }>(`/moderation/${id}/dismiss`).then(r => r.data),
 
   // Team
   getTeam: () =>

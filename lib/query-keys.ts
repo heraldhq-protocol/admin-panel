@@ -1,4 +1,4 @@
-import type { ProtocolFilters, NotificationFilters, IncidentFilters } from '../types'
+import type { ProtocolFilters, NotificationFilters, IncidentFilters, ModerationFilters } from '../types/api'
 
 export const QUERY_KEYS = {
   overview: () =>
@@ -39,4 +39,13 @@ export const QUERY_KEYS = {
 
   team: () =>
     ['team'] as const,
+
+  moderationQueue: (filters?: ModerationFilters) =>
+    ['moderation-queue', filters] as const,
+
+  moderationItem: (id: string) =>
+    ['moderation-item', id] as const,
+
+  protocolAuditLog: (id: string, page?: number) =>
+    ['protocol-audit-log', id, page] as const,
 } as const

@@ -16,6 +16,7 @@ import {
   ChevronRight,
   LogOut,
   X,
+  Shield,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useUiStore } from '@/lib/stores/ui-store'
@@ -33,6 +34,7 @@ const navItems = [
   { name: 'Receipts', href: '/receipts', icon: RefreshCw },
   { name: 'Email Health', href: '/email-health', icon: Activity },
   { name: 'Design Partners', href: '/design-partners', icon: Handshake },
+  { name: 'Moderation', href: '/moderation', icon: Shield },
   { name: 'Incidents', href: '/incidents', icon: ShieldAlert },
   { name: 'Team', href: '/team', icon: Users },
 ]

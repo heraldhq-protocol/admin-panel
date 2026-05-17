@@ -33,6 +33,11 @@ export interface Protocol {
   contact_email_hash: string        // SHA-256 — NEVER plaintext
   design_partner: boolean
   admin_notes: string | null          // internal admin notes — never shown to protocol
+  verification_status: string
+  is_suspended: boolean
+  strike_count: number
+  strikes_reset_at: string | null
+  last_strike_at: string | null
 }
 
 export interface Notification {
@@ -140,6 +145,59 @@ export interface OverviewStats {
   }>
 }
 
+
+// ─── Moderation ───────────────────────────────────────────────────────
+export type ModerationItemType =
+  | 'protocol_registration'
+  | 'content_scan'
+  | 'health_degradation'
+  | 'user_report'
+
+export type ModerationSeverity = 'low' | 'medium' | 'high' | 'critical'
+export type ModerationResolution = 'approved' | 'struck' | 'dismissed'
+
+export interface ModerationQueueItem {
+  id: string
+  type: ModerationItemType
+  protocol_id: string
+  protocol_name: string
+  severity: ModerationSeverity
+  flag_reason: string
+  ai_scan_result: { verdict: string; reason: string; confidence: number } | null
+  rules_triggers: string[]
+  protocol_status: {
+    verification_status: string
+    is_suspended: boolean
+    strike_count: number
+    strikes_reset_at: string | null
+    last_strike_at: string | null
+    strike_reasons: Array<{ date: string; reason: string; actionTaken: string }> | null
+    registration_flags: Record<string, unknown> | null
+  }
+  resolved_at: string | null
+  resolved_by: string | null
+  resolution: ModerationResolution | null
+  created_at: string
+}
+
+export interface ModerationFilters {
+  page?: number
+  per_page?: number
+  type?: ModerationItemType
+  severity?: ModerationSeverity
+  resolved?: boolean
+}
+
+export interface AuditLogEntry {
+  id: string
+  action: string
+  resource_type: string | null
+  resource_id: string | null
+  old_value: unknown
+  new_value: unknown
+  actor_role: string | null
+  timestamp: string
+}
 
 // ─── Shared response shapes ────────────────────────────────────────────
 export interface PaginatedResponse<T> {
