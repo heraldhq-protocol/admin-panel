@@ -31,7 +31,27 @@ import { useUnsuspendProtocol } from '@/hooks/use-unsuspend-protocol'
 import { useChangeTier } from '@/hooks/use-change-tier'
 import { useUpdateProtocolNotes } from '@/hooks/use-update-protocol-notes'
 import { useDebounce } from '@/hooks/use-debounce'
+import { cn } from '@/lib/cn'
 import type { Tier } from '@/types/billing'
+import type { AuditLogEntry } from '@/types/api'
+
+type Tab = 'overview' | 'audit_log'
+
+// ─── Action label formatting ──────────────────────────────────────────────────
+
+function formatAction(action: string) {
+  return action.replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+function actionColor(action: string) {
+  if (action.includes('suspend')) return 'text-red bg-red/10 border-red/20'
+  if (action.includes('unsuspend') || action.includes('reactivate')) return 'text-teal bg-teal/10 border-teal/20'
+  if (action.includes('tier')) return 'text-purple-300 bg-purple-900/20 border-purple-700/30'
+  if (action.includes('strike')) return 'text-orange-300 bg-orange-900/20 border-orange-700/30'
+  if (action.includes('verify')) return 'text-blue-300 bg-blue-900/20 border-blue-700/30'
+  if (action.includes('note')) return 'text-text-muted bg-card-2 border-border'
+  return 'text-text-secondary bg-card-2 border-border'
+}
 
 export default function ProtocolDetailsPage() {
   const params = useParams()
@@ -49,10 +69,19 @@ export default function ProtocolDetailsPage() {
   const changeTier = useChangeTier(id)
   const updateNotes = useUpdateProtocolNotes(id)
 
+  const [activeTab, setActiveTab] = React.useState<Tab>('overview')
   const [suspendOpen, setSuspendOpen] = React.useState(false)
   const [suspendReason, setSuspendReason] = React.useState('')
   const [notes, setNotes] = React.useState('')
   const debouncedNotes = useDebounce(notes, 1000)
+
+  const [auditPage, setAuditPage] = React.useState(1)
+  const { data: auditData, isLoading: auditLoading } = useQuery({
+    queryKey: [...QUERY_KEYS.protocol(id), 'audit', auditPage],
+    queryFn: () => apiClient.getProtocolAuditLog(id, { page: auditPage, per_page: 20 }),
+    enabled: activeTab === 'audit_log' && !!id,
+    staleTime: 60_000,
+  })
 
   React.useEffect(() => {
     if (protocol?.admin_notes != null) setNotes(protocol.admin_notes)
@@ -88,7 +117,7 @@ export default function ProtocolDetailsPage() {
   const isOverQuota = protocol.sends_this_period > protocol.sends_limit
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <Button variant="ghost" size="sm" onClick={() => router.back()}>
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Registry
@@ -111,7 +140,88 @@ export default function ProtocolDetailsPage() {
         }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-border">
+        {([
+          { id: 'overview',   label: 'Overview',   icon: CreditCard },
+          { id: 'audit_log',  label: 'Audit Log',  icon: History },
+        ] as { id: Tab; label: string; icon: React.ElementType }[]).map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px',
+              activeTab === t.id
+                ? 'border-teal text-teal'
+                : 'border-transparent text-text-muted hover:text-text-secondary',
+            )}
+          >
+            <t.icon size={14} />
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Audit Log Tab ────────────────────────────────────────────────────── */}
+      {activeTab === 'audit_log' && (
+        <Card padding="none">
+          {auditLoading ? (
+            <div className="p-6 space-y-3">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} variant="rect" className="h-10" />
+              ))}
+            </div>
+          ) : !auditData?.data?.length ? (
+            <div className="py-16 text-center text-text-muted text-sm">No audit log entries yet.</div>
+          ) : (
+            <>
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs text-text-muted uppercase bg-card-2 border-b border-border">
+                  <tr>
+                    <th className="px-5 py-3.5 font-bold">Action</th>
+                    <th className="px-5 py-3.5 font-bold">Resource</th>
+                    <th className="px-5 py-3.5 font-bold">Actor</th>
+                    <th className="px-5 py-3.5 font-bold text-right">When</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {auditData.data.map((entry: AuditLogEntry) => (
+                    <tr key={entry.id} className="hover:bg-card-2/50 transition-colors">
+                      <td className="px-5 py-3">
+                        <span className={cn('inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold border', actionColor(entry.action))}>
+                          {formatAction(entry.action)}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-xs text-text-muted font-mono">
+                        {entry.resource_type ?? '—'}
+                        {entry.resource_id && (
+                          <span className="ml-1 opacity-50">{entry.resource_id.slice(0, 8)}…</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3 text-xs text-text-secondary">
+                        {entry.actor_role ?? '—'}
+                      </td>
+                      <td className="px-5 py-3 text-xs text-text-muted text-right">
+                        {formatRelativeTime(entry.timestamp)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="border-t border-border px-5 py-3 flex items-center justify-between text-xs text-text-muted">
+                <span>{auditData.total} total entries</span>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" disabled={auditPage === 1} onClick={() => setAuditPage((p) => p - 1)}>Previous</Button>
+                  <Button variant="outline" size="sm" disabled={!auditData.has_more} onClick={() => setAuditPage((p) => p + 1)}>Next</Button>
+                </div>
+              </div>
+            </>
+          )}
+        </Card>
+      )}
+
+      {/* ── Overview Tab ─────────────────────────────────────────────────────── */}
+      {activeTab === 'overview' && <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {/* Subscription & Volume */}
           <Card padding="lg" className="space-y-6">
@@ -293,7 +403,7 @@ export default function ProtocolDetailsPage() {
             </div>
           </Card>
         </div>
-      </div>
+      </div>}
     </div>
   )
 }

@@ -17,6 +17,24 @@ export type IncidentStatus = 'open' | 'investigating' | 'resolved'
 
 export type PartnerStatus = 'active' | 'inactive' | 'pending'
 
+export type PipelineStage =
+  | 'prospect'
+  | 'outreach'
+  | 'negotiating'
+  | 'signed'
+  | 'active'
+  | 'on_hold'
+  | 'churned'
+
+export type CampaignSource =
+  | 'conference'
+  | 'twitter'
+  | 'referral'
+  | 'cold_outreach'
+  | 'inbound'
+  | 'colosseum'
+  | 'other'
+
 // ─── Core entities ────────────────────────────────────────────────────
 export interface Protocol {
   id: string                        // ULID
@@ -80,18 +98,27 @@ export interface EmailHealth {
   reputation_history: Array<{ date: string; score: number }>
 }
 
+export type BillingType = 'retainer' | 'tier_grant'
+
 export interface DesignPartner {
   id: string
   protocol_id: string
   protocol_name: string
-  retainer_amount_cents: number     // $1,000/month = 100000
+  retainer_amount_cents: number
   retainer_start: string
-  retainer_end: string
+  retainer_end: string | null
   status: PartnerStatus
   feedback_sessions: number
   sends_this_period: number
   equity_warrant_issued: boolean
   notes: string | null
+  contact_name: string | null
+  contact_email: string | null
+  pipeline_stage: PipelineStage
+  campaign_source: CampaignSource | null
+  billing_type: BillingType
+  granted_tier: 0 | 1 | 2 | 3 | null
+  tier_grant_expires_at: string | null
   created_at: string
 }
 

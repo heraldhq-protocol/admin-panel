@@ -5,6 +5,9 @@ import type {
   FailedReceipt,
   EmailHealth,
   DesignPartner,
+  PipelineStage,
+  CampaignSource,
+  BillingType,
   Incident,
   IncidentTimelineEntry,
   TeamMember,
@@ -82,13 +85,27 @@ export const apiClient = {
     client.get<EmailHealth>('/email-health').then(r => r.data),
 
   // Design Partners
-  getDesignPartners: (status?: string) =>
-    client.get<PaginatedResponse<DesignPartner>>('/design-partners', { params: status ? { status } : undefined }).then(r => r.data),
+  getDesignPartners: (params?: { status?: string; pipeline_stage?: PipelineStage }) =>
+    client.get<PaginatedResponse<DesignPartner>>('/design-partners', { params }).then(r => r.data),
   getDesignPartner: (id: string) =>
     client.get<DesignPartner>(`/design-partners/${id}`).then(r => r.data),
-  addDesignPartner: (data: { protocol_id: string; retainer_amount_cents: number; retainer_start: string; equity_warrant_issued: boolean; notes?: string }) =>
+  addDesignPartner: (data: {
+    protocol_id: string
+    retainer_amount_cents: number
+    retainer_start: string
+    retainer_end?: string
+    equity_warrant_issued: boolean
+    pipeline_stage?: PipelineStage
+    contact_name?: string
+    contact_email?: string
+    campaign_source?: CampaignSource
+    notes?: string
+    billing_type?: BillingType
+    granted_tier?: 1 | 2 | 3
+    tier_grant_expires_at?: string
+  }) =>
     client.post<DesignPartner>('/design-partners', data).then(r => r.data),
-  updateDesignPartner: (id: string, data: Partial<DesignPartner>) =>
+  updateDesignPartner: (id: string, data: Partial<DesignPartner> & { pipeline_stage?: PipelineStage }) =>
     client.put<DesignPartner>(`/design-partners/${id}`, data).then(r => r.data),
   updateDesignPartnerNotes: (id: string, notes: string) =>
     client.post<DesignPartner>(`/design-partners/${id}/notes`, { notes }).then(r => r.data),

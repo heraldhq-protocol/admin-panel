@@ -19,6 +19,8 @@ import {
   Shield,
   FileCode,
   Flag,
+  BarChart2,
+  Wrench,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useUiStore } from '@/lib/stores/ui-store'
@@ -31,6 +33,7 @@ import { Badge } from '@/components/ui/badge'
 
 const navItems = [
   { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Analytics', href: '/analytics', icon: BarChart2 },
   { name: 'Protocols', href: '/protocols', icon: Database },
   { name: 'Notifications', href: '/notifications', icon: Bell },
   { name: 'Receipts', href: '/receipts', icon: RefreshCw },
@@ -41,6 +44,7 @@ const navItems = [
   { name: 'Templates', href: '/templates', icon: FileCode },
   { name: 'Incidents', href: '/incidents', icon: ShieldAlert },
   { name: 'Team', href: '/team', icon: Users },
+  { name: 'Tools', href: '/tools', icon: Wrench },
 ]
 
 export function SidebarNav() {
