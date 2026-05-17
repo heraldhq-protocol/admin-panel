@@ -21,7 +21,7 @@ export default function ProtocolsPage() {
   const [page, setPage] = React.useState(1)
   const debouncedSearch = useDebounce(search, 300)
 
-  const { data, isLoading } = useProtocols({
+  const { data, isLoading, isError, error } = useProtocols({
     ...(debouncedSearch ? { search: debouncedSearch } : {}),
     page,
     per_page: 20,
@@ -146,9 +146,22 @@ export default function ProtocolsPage() {
         </Button>
       </div>
 
-      <DataTable 
-        columns={columns as any} 
-        data={data?.data || []} 
+      {isError && (
+        <div className="rounded-lg border border-admin/30 bg-admin-bg px-4 py-3 text-sm text-admin">
+          <span className="font-mono font-bold">Backend error — </span>
+          {(error as any)?.response?.status === 401
+            ? 'Not authenticated. Go back to login.'
+            : (error as any)?.response?.status === 403
+            ? 'Admin key rejected. Check HERALD_ADMIN_KEY in .env.local matches backend HERALD_ADMIN_API_KEY.'
+            : (error as any)?.code === 'ERR_NETWORK' || (error as any)?.code === 'ECONNREFUSED'
+            ? 'Cannot reach backend at localhost:3001. Is the backend running? Is Redis up?'
+            : `${String((error as any)?.message ?? 'Unknown error')} — check backend logs.`}
+        </div>
+      )}
+
+      <DataTable
+        columns={columns as any}
+        data={data?.data ?? []}
         isLoading={isLoading}
         onRowClick={(row: any) => router.push(`/protocols/${row.id}`)}
       />

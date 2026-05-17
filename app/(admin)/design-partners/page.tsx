@@ -21,6 +21,8 @@ export default function DesignPartnersPage() {
   const { data, isLoading } = useDesignPartners()
   const addPartner = useAddDesignPartner()
 
+  const PAGE_SIZE = 10
+  const [page, setPage] = React.useState(1)
   const [search, setSearch] = React.useState('')
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [form, setForm] = React.useState({
@@ -34,6 +36,11 @@ export default function DesignPartnersPage() {
   const partners: DesignPartner[] = (data?.data ?? []).filter((p) =>
     search.length === 0 || p.protocol_name.toLowerCase().includes(search.toLowerCase()),
   )
+  const totalPartners = partners.length
+  const totalPages = Math.ceil(totalPartners / PAGE_SIZE)
+  const pagedPartners = partners.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  React.useEffect(() => { setPage(1) }, [search])
 
   const handleAdd = () => {
     const cents = Math.round(parseFloat(form.retainer_amount_usd) * 100)
@@ -114,7 +121,7 @@ export default function DesignPartnersPage() {
                       <td className="px-6 py-4 text-right"><Skeleton className="h-8 w-8 ml-auto" /></td>
                     </tr>
                   ))
-                : partners.length === 0
+                : totalPartners === 0
                 ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-20 text-center text-text-muted">
@@ -122,7 +129,7 @@ export default function DesignPartnersPage() {
                       </td>
                     </tr>
                   )
-                : partners.map((partner) => (
+                : pagedPartners.map((partner) => (
                     <tr
                       key={partner.id}
                       onClick={() => router.push(`/design-partners/${partner.id}`)}
@@ -167,6 +174,18 @@ export default function DesignPartnersPage() {
           </table>
         </div>
       </Card>
+
+      {!isLoading && totalPartners > PAGE_SIZE && (
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs text-text-muted">
+            {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalPartners)} of {totalPartners} partners
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
+            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
+          </div>
+        </div>
+      )}
 
       {/* Add Partner Dialog */}
       <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>

@@ -30,7 +30,7 @@ export interface Protocol {
   period_reset_at: string           // ISO datetime
   created_at: string
   stripe_customer_id: string | null
-  contact_email_hash: string        // SHA-256 — NEVER plaintext
+  contact_email_hash: string | null  // SHA-256 — NEVER plaintext. null when protocol has no settings record.
   design_partner: boolean
   admin_notes: string | null          // internal admin notes — never shown to protocol
 }
@@ -62,10 +62,10 @@ export interface FailedReceipt {
 }
 
 export interface EmailHealth {
-  reputation_score: number          // 0-100
-  bounce_rate_percent: number       // alarm threshold: > 5%
-  complaint_rate_percent: number    // alarm threshold: > 0.1%
-  sending_quota_24h: number
+  reputation_score: number | null    // 0-100; null when SES_REGION not configured
+  bounce_rate_percent: number | null // alarm threshold: > 5%
+  complaint_rate_percent: number | null // alarm threshold: > 0.1%
+  sending_quota_24h: number | null
   sends_last_24h: number
   dkim_status: 'pass' | 'fail' | 'unknown'
   spf_status: 'pass' | 'fail' | 'unknown'
@@ -73,6 +73,8 @@ export interface EmailHealth {
   dedicated_ip: string
   warmup_complete: boolean
   reputation_history: Array<{ date: string; score: number }>
+  _no_aws_region?: boolean
+  _error?: string
 }
 
 export interface DesignPartner {
