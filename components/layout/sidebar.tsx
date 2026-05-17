@@ -18,6 +18,7 @@ import {
   X,
   Shield,
   FileCode,
+  Flag,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useUiStore } from '@/lib/stores/ui-store'
@@ -36,6 +37,7 @@ const navItems = [
   { name: 'Email Health', href: '/email-health', icon: Activity },
   { name: 'Design Partners', href: '/design-partners', icon: Handshake },
   { name: 'Moderation', href: '/moderation', icon: Shield },
+  { name: 'Reports', href: '/reports', icon: Flag },
   { name: 'Templates', href: '/templates', icon: FileCode },
   { name: 'Incidents', href: '/incidents', icon: ShieldAlert },
   { name: 'Team', href: '/team', icon: Users },

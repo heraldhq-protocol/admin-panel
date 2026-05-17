@@ -18,6 +18,8 @@ import type {
   AuditLogEntry,
   PendingTemplate,
   TemplateFilters,
+  AbuseReport,
+  AbuseReportFilters,
 } from '../types/api'
 import type { Tier } from '../types/billing'
 
@@ -130,6 +132,10 @@ export const apiClient = {
     client.post<{ success: boolean }>(`/templates/${id}/approve`).then(r => r.data),
   rejectTemplate: (id: string, reason: string) =>
     client.post<{ success: boolean }>(`/templates/${id}/reject`, { reason }).then(r => r.data),
+
+  // Abuse Reports (Sprint 5)
+  getAbuseReports: (filters?: AbuseReportFilters) =>
+    client.get<PaginatedResponse<AbuseReport>>('/reports', { params: filters }).then(r => r.data),
 
   // Team
   getTeam: () =>

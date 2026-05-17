@@ -225,6 +225,24 @@ export interface TemplateFilters {
   protocol_id?: string
 }
 
+// ─── Abuse Reports ────────────────────────────────────────────────────
+export interface AbuseReport {
+  protocol_id: string
+  protocol_name: string
+  total_reports: number
+  unique_reporters: number
+  most_common_reason: string
+  last_reported_at: string | null
+  open_moderation_item: boolean
+  moderation_queue_id: string | null
+}
+
+export interface AbuseReportFilters {
+  page?: number
+  per_page?: number
+  protocol_id?: string
+}
+
 // ─── Shared response shapes ────────────────────────────────────────────
 export interface PaginatedResponse<T> {
   data: T[]

@@ -51,4 +51,7 @@ export const QUERY_KEYS = {
 
   pendingTemplates: (filters?: TemplateFilters) =>
     ['pending-templates', filters] as const,
+
+  abuseReports: (filters?: { page?: number; protocol_id?: string }) =>
+    ['abuse-reports', filters] as const,
 } as const
