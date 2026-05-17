@@ -16,6 +16,8 @@ import type {
   ModerationQueueItem,
   ModerationFilters,
   AuditLogEntry,
+  PendingTemplate,
+  TemplateFilters,
 } from '../types/api'
 import type { Tier } from '../types/billing'
 
@@ -120,6 +122,14 @@ export const apiClient = {
     client.post<{ success: boolean; strike_count: number; suspended: boolean }>(`/moderation/${id}/strike`, data).then(r => r.data),
   dismissModeration: (id: string) =>
     client.post<{ success: boolean; resolution: string }>(`/moderation/${id}/dismiss`).then(r => r.data),
+
+  // Template review
+  getPendingTemplates: (filters?: TemplateFilters) =>
+    client.get<PaginatedResponse<PendingTemplate>>('/templates/pending', { params: filters }).then(r => r.data),
+  approveTemplate: (id: string) =>
+    client.post<{ success: boolean }>(`/templates/${id}/approve`).then(r => r.data),
+  rejectTemplate: (id: string, reason: string) =>
+    client.post<{ success: boolean }>(`/templates/${id}/reject`, { reason }).then(r => r.data),
 
   // Team
   getTeam: () =>

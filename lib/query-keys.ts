@@ -1,4 +1,4 @@
-import type { ProtocolFilters, NotificationFilters, IncidentFilters, ModerationFilters } from '../types/api'
+import type { ProtocolFilters, NotificationFilters, IncidentFilters, ModerationFilters, TemplateFilters } from '../types/api'
 
 export const QUERY_KEYS = {
   overview: () =>
@@ -48,4 +48,7 @@ export const QUERY_KEYS = {
 
   protocolAuditLog: (id: string, page?: number) =>
     ['protocol-audit-log', id, page] as const,
+
+  pendingTemplates: (filters?: TemplateFilters) =>
+    ['pending-templates', filters] as const,
 } as const

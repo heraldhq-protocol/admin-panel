@@ -199,6 +199,32 @@ export interface AuditLogEntry {
   timestamp: string
 }
 
+// ─── Template Review ──────────────────────────────────────────────────
+export type TemplateStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED'
+
+export interface PendingTemplate {
+  id: string
+  name: string
+  category: string
+  subject_template: string | null
+  version: number
+  status: TemplateStatus
+  protocol: {
+    id: string
+    name: string
+    verification_status: string
+    is_suspended: boolean
+  }
+  updated_at: string
+  created_at: string
+}
+
+export interface TemplateFilters {
+  page?: number
+  per_page?: number
+  protocol_id?: string
+}
+
 // ─── Shared response shapes ────────────────────────────────────────────
 export interface PaginatedResponse<T> {
   data: T[]
