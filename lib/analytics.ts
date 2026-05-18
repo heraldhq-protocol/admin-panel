@@ -13,15 +13,10 @@
 
 type Props = Record<string, unknown>
 
-function getPostHog() {
-  if (typeof window === 'undefined') return null
-  try {
-    // Dynamic require so the build doesn't fail if posthog-js isn't installed yet
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require('posthog-js').default as { capture: (e: string, p?: Props) => void; init: (k: string, o: object) => void }
-  } catch {
-    return null
-  }
+// posthog-js not yet installed — all calls are no-ops.
+// To enable: pnpm add posthog-js, then replace this stub with a real import.
+function getPostHog(): { capture: (e: string, p?: Props) => void; init: (k: string, o: object) => void } | null {
+  return null
 }
 
 export function initPostHog(): void {

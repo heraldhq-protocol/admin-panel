@@ -284,6 +284,9 @@ export interface TemplateAnalysis {
   spam_score: number
   tone: string
   flags: string[]
+  compliance_flags?: string[]
+  security_flags?: string[]
+  quality_flags?: string[]
   suggestions: string[]
   summary: string
 }

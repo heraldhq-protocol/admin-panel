@@ -44,6 +44,34 @@ function SpamMeter({ score }: { score: number }) {
 }
 
 function AnalysisPanel({ analysis }: { analysis: TemplateAnalysis }) {
+  const flagSections: Array<{
+    title: string;
+    icon: typeof Shield;
+    color: string;
+    flags: string[];
+  }> = [
+    {
+      title: 'Compliance',
+      icon: Shield,
+      color: 'text-amber',
+      flags: analysis.compliance_flags ?? [],
+    },
+    {
+      title: 'Security',
+      icon: AlertTriangle,
+      color: 'text-red',
+      flags: analysis.security_flags ?? [],
+    },
+    {
+      title: 'Quality',
+      icon: Info,
+      color: 'text-blue',
+      flags: analysis.quality_flags ?? [],
+    },
+  ];
+
+  const hasCategorized = flagSections.some((s) => s.flags.length > 0);
+
   return (
     <div className="space-y-4">
       <SpamMeter score={analysis.spam_score} />
@@ -60,7 +88,23 @@ function AnalysisPanel({ analysis }: { analysis: TemplateAnalysis }) {
 
       <p className="text-sm text-text-secondary italic">{analysis.summary}</p>
 
-      {analysis.flags.length > 0 && (
+      {hasCategorized && flagSections.map(({ title, icon: Icon, color, flags: sectionFlags }) =>
+        sectionFlags.length > 0 && (
+          <div key={title} className="space-y-1.5">
+            <p className="text-xs font-semibold text-text-primary">{title}</p>
+            <ul className="space-y-1">
+              {sectionFlags.map((f, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs" style={{ color }}>
+                  <Icon size={12} className="mt-0.5 shrink-0" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ),
+      )}
+
+      {!hasCategorized && analysis.flags.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-xs font-semibold text-text-primary">Issues Found</p>
           <ul className="space-y-1">
