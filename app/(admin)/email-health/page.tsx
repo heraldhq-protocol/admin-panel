@@ -35,6 +35,13 @@ export default function EmailHealthPage() {
     )
   }
 
+  const sesUnavailable = health?._no_aws_region === true || health?._error != null
+  const fmtScore = health?.reputation_score != null ? `${health.reputation_score}/100` : '—/100'
+  const fmtBounce = health?.bounce_rate_percent != null ? `${health.bounce_rate_percent.toFixed(3)}%` : '—'
+  const fmtComplaint = health?.complaint_rate_percent != null ? `${health.complaint_rate_percent.toFixed(4)}%` : '—'
+  const quota = health?.sending_quota_24h ?? 0
+  const quotaUsedPct = quota > 0 ? (health!.sends_last_24h / quota) * 100 : 0
+
   const dnsRecords = [
     { name: 'DKIM (DomainKeys)', status: health?.dkim_status, desc: 'Digital signature for message integrity' },
     { name: 'SPF (Sender Policy)', status: health?.spf_status, desc: 'Authorized IP list for the domain' },
@@ -43,36 +50,40 @@ export default function EmailHealthPage() {
 
   return (
     <div className="flex flex-col gap-8 pb-10">
-      <PageHeader 
-        title="Email Delivery Health" 
+      <PageHeader
+        title="Email Delivery Health"
         description="Monitor sending reputation, DNS authentication, and delivery performance."
       />
 
+      {sesUnavailable && (
+        <div className="rounded-lg border border-border bg-card-2 px-4 py-3 text-sm text-text-secondary">
+          <span className="font-mono font-bold text-text-primary">SES not configured — </span>
+          {health?._error ?? 'Set SES_REGION (and AWS credentials) in the backend .env to enable live reputation data.'}
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <HealthMetric 
-          label="Reputation Score" 
-          value={`${health?.reputation_score}/100`} 
+        <HealthMetric
+          label="Reputation Score"
+          value={fmtScore}
           icon={<ShieldCheck className="text-teal h-5 w-5" />}
-          trend="+1.2%"
           color="teal"
         />
-        <HealthMetric 
-          label="Bounce Rate" 
-          value={`${health?.bounce_rate_percent}%`} 
+        <HealthMetric
+          label="Bounce Rate"
+          value={fmtBounce}
           icon={<AlertCircle className="text-gold h-5 w-5" />}
-          trend="-0.05%"
           isNegative
         />
-        <HealthMetric 
-          label="Complaint Rate" 
-          value={`${health?.complaint_rate_percent}%`} 
+        <HealthMetric
+          label="Complaint Rate"
+          value={fmtComplaint}
           icon={<AlertCircle className="text-red h-5 w-5" />}
-          trend="0%"
         />
-        <HealthMetric 
-          label="Warmup Status" 
-          value={health?.warmup_complete ? 'Complete' : 'In Progress'} 
+        <HealthMetric
+          label="Warmup Status"
+          value={health?.warmup_complete ? 'Complete' : 'In Progress'}
           icon={<Activity className="text-purple h-5 w-5" />}
           subValue="Dedicated IP Active"
         />
@@ -146,11 +157,11 @@ export default function EmailHealthPage() {
             <div className="pt-4 border-t border-border">
               <div className="flex items-center justify-between text-xs text-text-muted mb-2">
                 <span>Sending Quota Used (24h)</span>
-                <span>{health ? ((health.sends_last_24h / health.sending_quota_24h) * 100).toFixed(1) : '0'}%</span>
+                <span>{quotaUsedPct.toFixed(1)}%</span>
               </div>
-              <Progress value={health ? (health.sends_last_24h / health.sending_quota_24h) * 100 : 0} className="h-2" />
+              <Progress value={quotaUsedPct} className="h-2" />
               <div className="mt-2 text-[10px] text-text-muted">
-                {(health?.sends_last_24h ?? 0).toLocaleString()} / {(health?.sending_quota_24h ?? 0).toLocaleString()} msgs
+                {(health?.sends_last_24h ?? 0).toLocaleString()} / {quota > 0 ? quota.toLocaleString() : '—'} msgs
               </div>
             </div>
           </Card>

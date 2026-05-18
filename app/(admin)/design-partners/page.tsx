@@ -101,6 +101,8 @@ export default function DesignPartnersPage() {
   const { data: protocolsData } = useProtocols({ per_page: 200 } as never)
   const allProtocols = protocolsData?.data ?? []
 
+  const PAGE_SIZE = 10
+  const [page, setPage] = React.useState(1)
   const [search, setSearch] = React.useState('')
   const [stageFilter, setStageFilter] = React.useState<PipelineStage | 'all'>('all')
   const [viewMode, setViewMode] = React.useState<'list' | 'board'>('list')
@@ -151,6 +153,12 @@ export default function DesignPartnersPage() {
     return d !== null && d >= 0 && d <= 30
   }).length
   const activeCount = allPartners.filter((p) => p.pipeline_stage === 'active').length
+
+  const totalPartners = filtered.length
+  const totalPages = Math.ceil(totalPartners / PAGE_SIZE)
+  const pagedPartners = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  React.useEffect(() => { setPage(1) }, [search, stageFilter])
 
   // Stage counts
   const stageCounts = React.useMemo(() => {
@@ -373,7 +381,7 @@ export default function DesignPartnersPage() {
                       ))}
                     </tr>
                   ))
-                : filtered.length === 0
+                : pagedPartners.length === 0
                   ? (
                       <tr>
                         <td colSpan={7} className="px-5 py-16 text-center text-text-muted">
@@ -381,7 +389,7 @@ export default function DesignPartnersPage() {
                         </td>
                       </tr>
                     )
-                  : filtered.map((p) => {
+                  : pagedPartners.map((p) => {
                       const stage = stageCfg(p.pipeline_stage)
                       const days = daysUntilRenewal(p.retainer_end)
                       const renewalWarning = days !== null && days >= 0 && days <= 30
@@ -482,6 +490,18 @@ export default function DesignPartnersPage() {
           </div>
         )}
       </Card>}
+
+      {!isLoading && totalPartners > PAGE_SIZE && (
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs text-text-muted">
+            {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalPartners)} of {totalPartners} partners
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
+            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
+          </div>
+        </div>
+      )}
 
       {/* Add Partner Dialog */}
       <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>

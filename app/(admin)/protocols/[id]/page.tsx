@@ -531,7 +531,7 @@ export default function ProtocolDetailsPage() {
               </div>
               <div>
                 <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Contact Hash (SHA-256)</p>
-                <code className="text-[11px] font-mono break-all">{protocol.contact_email_hash.slice(0, 16)}…</code>
+                <code className="text-[11px] font-mono break-all">{protocol.contact_email_hash != null ? protocol.contact_email_hash.slice(0, 16) + '…' : 'N/A'}</code>
               </div>
               <div>
                 <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Registered</p>

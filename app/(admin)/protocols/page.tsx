@@ -37,7 +37,7 @@ export default function ProtocolsPage() {
   const [statusFilter, setStatusFilter] = React.useState<boolean | undefined>(undefined)
   const debouncedSearch = useDebounce(search, 300)
 
-  const { data, isLoading } = useProtocols({
+  const { data, isLoading, isError, error } = useProtocols({
     ...(debouncedSearch ? { search: debouncedSearch } : {}),
     ...(tierFilter !== undefined ? { tier: tierFilter as Tier } : {}),
     ...(statusFilter !== undefined ? { is_active: statusFilter } : {}),
@@ -223,6 +223,19 @@ export default function ProtocolsPage() {
           </button>
         )}
       </div>
+
+      {isError && (
+        <div className="rounded-lg border border-red/30 bg-red/5 px-4 py-3 text-sm text-red">
+          <span className="font-mono font-bold">Backend error — </span>
+          {(error as any)?.response?.status === 401
+            ? 'Not authenticated. Go back to login.'
+            : (error as any)?.response?.status === 403
+            ? 'Admin key rejected. Check HERALD_ADMIN_KEY in .env.local matches backend HERALD_ADMIN_API_KEY.'
+            : (error as any)?.code === 'ERR_NETWORK' || (error as any)?.code === 'ECONNREFUSED'
+            ? 'Cannot reach backend at localhost:3001. Is the backend running? Is Redis up?'
+            : `${String((error as any)?.message ?? 'Unknown error')} — check backend logs.`}
+        </div>
+      )}
 
       {/* Bulk action bar */}
       {someSelected && (
