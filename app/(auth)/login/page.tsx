@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Wallet, Mail, ShieldCheck } from 'lucide-react'
 import { Card } from '@/components/ui/card'
@@ -14,12 +14,22 @@ export default function LoginPage() {
   const [method, setMethod] = React.useState<'wallet' | 'otp'>('wallet')
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
-  
+
   // OTP state
   const [email, setEmail] = React.useState('')
   const [code, setCode] = React.useState('')
-  
+
   const router = useRouter()
+  const { data: session } = useSession()
+
+  // Clear any stale/expired session cookie when landing on the login page.
+  // Without this, a malformed old cookie can survive navigation to /login and
+  // cause a reload loop once the user successfully signs in and goes to /dashboard.
+  React.useEffect(() => {
+    if (session?.error === 'RefreshTokenError') {
+      void signOut({ redirect: false })
+    }
+  }, [session])
 
   const handleWalletLogin = async () => {
     setIsLoading(true)

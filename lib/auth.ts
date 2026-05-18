@@ -202,9 +202,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     session({ session, token }) {
-      if (!token.sub) throw new Error('Missing token.sub in JWT')
-      if (!isAdminRole(token.role)) throw new Error(`Invalid role in JWT: ${String(token.role)}`)
-      if (!isAuthMethod(token.auth_method)) throw new Error(`Invalid auth_method in JWT: ${String(token.auth_method)}`)
+      // Guard: stale or malformed tokens — mark as expired so the client signs out cleanly.
+      // Never throw here; throwing in the session callback causes NextAuth to return a 500
+      // to the RSC layer, which triggers an infinite browser reload loop.
+      if (
+        !token.sub ||
+        !isAdminRole(token.role) ||
+        !isAuthMethod(token.auth_method) ||
+        !token.backend_token
+      ) {
+        session.error = 'RefreshTokenError'
+        return session
+      }
 
       session.user.id = token.sub
       session.user.display_name = typeof token.display_name === 'string'

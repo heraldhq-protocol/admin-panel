@@ -34,15 +34,16 @@ const client = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-// Redirect to login when the session is gone or expired.
-// The flag prevents multiple concurrent 401s from each triggering a reload.
+// Sign out and redirect to login when the session is gone or expired.
+// Using /api/auth/signout clears the NextAuth cookie so the login page
+// doesn't re-enter the loop with the stale token.
 let _authRedirectPending = false
 client.interceptors.response.use(
   (response) => response,
   (error) => {
     if (typeof window !== 'undefined' && error.response?.status === 401 && !_authRedirectPending) {
       _authRedirectPending = true
-      window.location.href = '/login'
+      window.location.href = '/api/auth/signout?callbackUrl=/login'
     }
     return Promise.reject(error)
   }
