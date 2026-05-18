@@ -96,6 +96,12 @@ export interface EmailHealth {
   dedicated_ip: string
   warmup_complete: boolean
   reputation_history: Array<{ date: string; score: number }>
+  resend?: {
+    configured: boolean
+    api_status: 'ok' | 'error' | 'unconfigured'
+    sends_last_24h: number
+    bounces_last_24h: number
+  }
   _no_aws_region?: boolean
   _error?: string
 }

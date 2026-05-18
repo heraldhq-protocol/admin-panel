@@ -1,22 +1,31 @@
 /* eslint-disable import/no-default-export */
 // Required: Next.js App Router catch-all route must use named exports per HTTP method.
 // This file proxies all /api/admin/* requests to the NestJS backend at HERALD_BACKEND_URL.
-// The x-herald-admin-key header is added server-side — never exposed to the browser.
+// The Authorization: Bearer header is added server-side from the NextAuth JWT — never exposed to the browser.
 
-import { auth } from '../../../../lib/auth'
+import { getToken } from 'next-auth/jwt'
 
 import type { NextRequest } from 'next/server'
 
 const BACKEND_URL = process.env.HERALD_BACKEND_URL ?? 'http://localhost:3001/v1'
-const ADMIN_KEY = process.env.HERALD_ADMIN_KEY ?? ''
 
 async function proxy(
   req: NextRequest,
   params: Promise<{ path: string[] }>,
 ): Promise<Response> {
-  const session = await auth()
-  if (!session) {
+  // Use getToken() to read the JWT directly from the request object — avoids
+  // Next.js AsyncLocalStorage concurrency issues that cause intermittent null sessions.
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+
+  if (!token) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (token.error === 'RefreshTokenError' || !token.backend_token) {
+    return Response.json(
+      { error: 'Session expired — please log in again' },
+      { status: 401 },
+    )
   }
 
   const { path } = await params
@@ -25,19 +34,21 @@ async function proxy(
 
   const headers = new Headers()
   headers.set('content-type', 'application/json')
-  headers.set('x-herald-admin-key', ADMIN_KEY)
-
-  const forwarded = req.headers.get('authorization')
-  if (forwarded) headers.set('authorization', forwarded)
+  headers.set('authorization', `Bearer ${token.backend_token as string}`)
 
   const isBodyMethod = req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH'
   const body = isBodyMethod ? await req.text() : undefined
 
-  const upstream = await fetch(targetUrl, {
-    method: req.method,
-    headers,
-    ...(body !== undefined ? { body } : {}),
-  })
+  let upstream: globalThis.Response
+  try {
+    upstream = await fetch(targetUrl, {
+      method: req.method,
+      headers,
+      ...(body !== undefined ? { body } : {}),
+    })
+  } catch {
+    return Response.json({ error: 'Backend unavailable' }, { status: 503 })
+  }
 
   const contentType = upstream.headers.get('content-type') ?? ''
   const responseHeaders = new Headers()

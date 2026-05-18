@@ -70,8 +70,8 @@ export default function DashboardPage() {
         <StatCard
           label="Delivery Rate"
           isLoading={overviewLoading}
-          value={overview?.delivery_rate_24h != null ? `${(overview.delivery_rate_24h * 100).toFixed(1)}` : 0}
-          delta={overview?.delivery_rate_delta != null ? `${(overview.delivery_rate_delta * 100).toFixed(1)}` : 0}
+          value={overview?.delivery_rate_24h != null ? `${overview.delivery_rate_24h.toFixed(1)}` : 0}
+          delta={overview?.delivery_rate_delta != null ? `${overview.delivery_rate_delta.toFixed(1)}` : 0}
           trend={overview && overview.delivery_rate_delta >= 0 ? 'up' : 'down'}
           suffix="% 24h"
         />

@@ -2,7 +2,7 @@
 // Required: Next.js App Router pages must use default export
 'use client'
 
-import { ShieldCheck, Activity, TrendingUp, Mail, Server, AlertCircle } from 'lucide-react'
+import { ShieldCheck, Activity, TrendingUp, Mail, Server, AlertCircle, Zap } from 'lucide-react'
 import {
   XAxis,
   YAxis,
@@ -179,6 +179,56 @@ export default function EmailHealthPage() {
           </Card>
         </div>
       </div>
+
+      {/* Resend Fallback */}
+      <Card padding="lg" className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <h3 className="font-syne text-lg font-bold flex items-center gap-2">
+            <Zap className="h-5 w-5 text-gold" />
+            Resend Fallback
+          </h3>
+          <Badge variant={
+            health?.resend?.api_status === 'ok' ? 'active' :
+            health?.resend?.api_status === 'error' ? 'failed' : 'developer'
+          }>
+            {health?.resend?.api_status === 'ok' ? 'CONNECTED' :
+             health?.resend?.api_status === 'error' ? 'ERROR' : 'NOT CONFIGURED'}
+          </Badge>
+        </div>
+        <p className="text-xs text-text-muted -mt-4">
+          Secondary email provider. Activates automatically when SES fails to deliver.
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] text-text-muted uppercase tracking-wider">Status</span>
+            <span className="text-sm font-bold text-text-primary">
+              {health?.resend?.configured ? 'Configured' : 'Not configured'}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] text-text-muted uppercase tracking-wider">API Ping</span>
+            <span className={`text-sm font-bold ${
+              health?.resend?.api_status === 'ok' ? 'text-teal' :
+              health?.resend?.api_status === 'error' ? 'text-red' : 'text-text-muted'
+            }`}>
+              {health?.resend?.api_status === 'ok' ? '✓ OK' :
+               health?.resend?.api_status === 'error' ? '✗ Failed' : '—'}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] text-text-muted uppercase tracking-wider">Sends via Resend (24h)</span>
+            <span className="text-sm font-bold text-text-primary">
+              {health?.resend?.sends_last_24h ?? 0}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] text-text-muted uppercase tracking-wider">Bounces via Resend (24h)</span>
+            <span className="text-sm font-bold text-text-primary">
+              {health?.resend?.bounces_last_24h ?? 0}
+            </span>
+          </div>
+        </div>
+      </Card>
     </div>
   )
 }

@@ -32,11 +32,14 @@ const client = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-// Redirect to login on 401
+// Redirect to login when the session is gone or expired.
+// The flag prevents multiple concurrent 401s from each triggering a reload.
+let _authRedirectPending = false
 client.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (typeof window !== 'undefined' && error.response?.status === 401) {
+    if (typeof window !== 'undefined' && error.response?.status === 401 && !_authRedirectPending) {
+      _authRedirectPending = true
       window.location.href = '/login'
     }
     return Promise.reject(error)
