@@ -30,6 +30,8 @@ export default function TeamPage() {
   const updateRole = useUpdateTeamRole()
   const removeMember = useRemoveTeamMember()
 
+  const PAGE_SIZE = 10
+  const [page, setPage] = React.useState(1)
   const [inviteOpen, setInviteOpen] = React.useState(false)
   const [editMember, setEditMember] = React.useState<TeamMember | null>(null)
   const [invite, setInvite] = React.useState({
@@ -141,12 +143,23 @@ export default function TeamPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-4">
           <DataTable
             columns={columns as never[]}
-            data={members ?? []}
+            data={(members ?? []).slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)}
             isLoading={isLoading}
           />
+          {!isLoading && (members?.length ?? 0) > PAGE_SIZE && (
+            <div className="flex items-center justify-between px-1">
+              <p className="text-xs text-text-muted">
+                {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, members!.length)} of {members!.length} members
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
+                <Button variant="outline" size="sm" disabled={page * PAGE_SIZE >= (members?.length ?? 0)} onClick={() => setPage((p) => p + 1)}>Next</Button>
+              </div>
+            </div>
+          )}
         </div>
 
         <Card padding="lg" className="space-y-4">

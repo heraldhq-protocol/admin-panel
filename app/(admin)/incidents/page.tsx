@@ -33,9 +33,15 @@ export default function IncidentsPage() {
     affected_component: '',
   })
 
+  const PAGE_SIZE = 10
+  const [page, setPage] = React.useState(1)
+
   const incidents = data?.data ?? []
   const openP0P1 = incidents.filter((i) => i.status !== 'resolved' && (i.severity === 'P0' || i.severity === 'P1')).length
   const investigating = incidents.filter((i) => i.status === 'investigating').length
+  const totalIncidents = incidents.length
+  const totalPages = Math.ceil(totalIncidents / PAGE_SIZE)
+  const pagedIncidents = incidents.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const handleCreate = () => {
     createIncident.mutate(form, {
@@ -138,10 +144,22 @@ export default function IncidentsPage() {
 
       <DataTable
         columns={columns as never[]}
-        data={incidents}
+        data={pagedIncidents}
         isLoading={isLoading}
         onRowClick={(row: { id: string }) => router.push(`/incidents/${row.id}`)}
       />
+
+      {!isLoading && totalIncidents > PAGE_SIZE && (
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs text-text-muted">
+            {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalIncidents)} of {totalIncidents} incidents
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
+            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
+          </div>
+        </div>
+      )}
 
       {/* Report Incident Dialog */}
       <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>

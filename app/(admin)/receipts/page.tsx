@@ -2,6 +2,7 @@
 // Required: Next.js App Router pages must use default export
 'use client'
 
+import * as React from 'react'
 import { Search, RefreshCw, AlertCircle, Clock } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -15,10 +16,18 @@ import { useRetryReceipt } from '@/hooks/use-retry-receipt'
 import { useRetryAllReceipts } from '@/hooks/use-retry-all-receipts'
 import type { FailedReceipt } from '@/types/api'
 
+const PAGE_SIZE = 10
+
 export default function ReceiptsPage() {
   const { data: receipts, isLoading } = useReceiptQueue()
   const retryOne = useRetryReceipt()
   const retryAll = useRetryAllReceipts()
+
+  const [page, setPage] = React.useState(1)
+  const allReceipts = receipts ?? []
+  const total = allReceipts.length
+  const totalPages = Math.ceil(total / PAGE_SIZE)
+  const paged = allReceipts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div className="flex flex-col gap-8">
@@ -76,7 +85,7 @@ export default function ReceiptsPage() {
                       <td className="px-6 py-4 text-right"><Skeleton className="h-8 w-20 ml-auto" /></td>
                     </tr>
                   ))
-                : receipts?.length === 0
+                : total === 0
                 ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-20 text-center text-text-muted">
@@ -84,7 +93,7 @@ export default function ReceiptsPage() {
                       </td>
                     </tr>
                   )
-                : receipts?.map((receipt: FailedReceipt) => (
+                : paged.map((receipt: FailedReceipt) => (
                     <tr key={receipt.id} className="hover:bg-card-2 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
@@ -128,6 +137,18 @@ export default function ReceiptsPage() {
           </table>
         </div>
       </Card>
+
+      {!isLoading && total > PAGE_SIZE && (
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs text-text-muted">
+            {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total} failed receipts
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
+            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
