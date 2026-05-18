@@ -22,7 +22,7 @@ function isAuthMethod(v: unknown): v is AuthMethod {
 function decodeTokenExp(jwt: string): number {
   try {
     const payload = JSON.parse(
-      Buffer.from(jwt.split('.')[1], 'base64url').toString(),
+      Buffer.from(jwt.split('.')[1] ?? '', 'base64url').toString(),
     )
     return payload.exp as number
   } catch {
