@@ -112,10 +112,10 @@ function KpiCard({
 }: {
   label: string
   value: string | number
-  delta?: number
+  delta?: number | undefined
   icon: React.ReactNode
   iconClass: string
-  isLoading?: boolean
+  isLoading?: boolean | undefined
   suffix?: string
 }) {
   return (
