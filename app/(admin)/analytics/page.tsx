@@ -150,14 +150,12 @@ export default function AnalyticsPage() {
           <StatCard
             label="Delivery Rate (24h)"
             value={overview?.delivery_rate_24h != null
-              ? (overview.delivery_rate_24h * 100).toFixed(1)
+              ? overview.delivery_rate_24h.toFixed(1)
               : '—'}
-            delta={overview?.delivery_rate_delta != null
-              ? overview.delivery_rate_delta * 100
-              : 0}
+            delta={overview?.delivery_rate_delta ?? 0}
             suffix="%"
             icon={<Percent size={16} />}
-            color={overview?.delivery_rate_24h != null && overview.delivery_rate_24h < 0.9 ? 'red' : 'teal'}
+            color={overview?.delivery_rate_24h != null && overview.delivery_rate_24h < 90 ? 'red' : 'teal'}
           />
         </div>
       )}

@@ -169,6 +169,7 @@ export interface OverviewStats {
   delivery_rate_24h: number
   delivery_rate_delta: number
   open_incidents: number
+  pending_verifications: number
   recent_activity: Array<{
     id: string
     description: string

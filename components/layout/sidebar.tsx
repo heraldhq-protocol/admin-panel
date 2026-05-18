@@ -17,6 +17,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { Badge } from '@/components/ui/badge'
+import Image from 'next/image'
 
 // ─── Badge counts ────────────────────────────────────────────────────────────
 
@@ -31,7 +32,7 @@ function useSidebarBadges(): Record<string, number> {
     failedReceipts:       receipts?.length ?? 0,
     pendingModeration:    moderation?.total ?? 0,
     pendingTemplates:     templates?.total ?? 0,
-    pendingVerifications: 0, // populated when protocol verification endpoint exposes count
+    pendingVerifications: overview?.pending_verifications ?? 0,
   }
 }
 
@@ -74,13 +75,11 @@ export function SidebarNav() {
       >
         {!sidebarCollapsed && (
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded bg-teal flex items-center justify-center">
-              <span className="text-[10px] font-black text-bg">H</span>
-            </div>
+            <Image width={24} height={24} src="/logo.svg" alt="Herald" />
             <span className="font-syne font-bold text-sm tracking-tight text-text-primary">
-              HERALD
+              Herald
             </span>
-            <span className="bg-admin text-[8px] font-black text-white px-1 rounded ml-1">
+            <span className="bg-teal text-[8px] font-black text-white px-1 rounded ml-1">
               ADMIN
             </span>
           </div>

@@ -12,6 +12,7 @@ import {
   Flag,
   BarChart2,
   Wrench,
+  DollarSign,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -68,8 +69,9 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Settings',
     items: [
       { name: 'Analytics', href: '/analytics', icon: BarChart2 },
-      { name: 'Team',      href: '/team',      icon: Users },
-      { name: 'Tools',     href: '/tools',     icon: Wrench },
+      { name: 'Billing',   href: '/billing',   icon: DollarSign },
+      { name: 'Team',      href: '/team',       icon: Users },
+      { name: 'Tools',     href: '/tools',      icon: Wrench },
     ],
   },
 ]
