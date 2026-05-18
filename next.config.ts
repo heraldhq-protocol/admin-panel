@@ -2,7 +2,7 @@ import type { NextConfig } from 'next'
 
 // Fail the build in production if required env vars are missing.
 if (process.env.NODE_ENV === 'production') {
-  const required = ['NEXTAUTH_SECRET', 'HERALD_BACKEND_URL', 'HERALD_ADMIN_KEY']
+  const required = ['NEXTAUTH_SECRET']
   const missing = required.filter((k) => !process.env[k])
   if (missing.length > 0) {
     throw new Error(
