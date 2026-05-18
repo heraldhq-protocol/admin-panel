@@ -180,7 +180,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       // Subsequent requests — refresh backend token if near expiry
-      const secondsRemaining = (token.backend_token_exp ?? 0) - Math.floor(Date.now() / 1000)
+      const secondsRemaining = (token.backend_token_exp as number) - Math.floor(Date.now() / 1000)
 
       if (secondsRemaining > REFRESH_THRESHOLD_SECONDS) {
         return token
@@ -189,11 +189,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       try {
         const { token: newToken } = await refreshBackendToken(token.backend_token as string)
         console.info(`[auth] backend token refreshed for ${String(token.sub)}`)
+        const { error: _e, ...cleanToken } = token
         return {
-          ...token,
+          ...cleanToken,
           backend_token: newToken,
           backend_token_exp: decodeTokenExp(newToken),
-          error: undefined,
         }
       } catch (err) {
         console.error('[auth] backend token refresh failed:', (err as Error).message)
