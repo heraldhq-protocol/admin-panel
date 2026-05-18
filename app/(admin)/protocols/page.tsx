@@ -35,6 +35,7 @@ export default function ProtocolsPage() {
   const [page, setPage] = React.useState(1)
   const [tierFilter, setTierFilter] = React.useState<number | undefined>(undefined)
   const [statusFilter, setStatusFilter] = React.useState<boolean | undefined>(undefined)
+  const [verificationFilter, setVerificationFilter] = React.useState<string>('')
   const debouncedSearch = useDebounce(search, 300)
 
   const { data, isLoading, isError, error } = useProtocols({
@@ -45,7 +46,12 @@ export default function ProtocolsPage() {
     per_page: 20,
   })
 
-  const protocols: Protocol[] = data?.data ?? []
+  // Client-side verification filter (backend doesn't expose this query param yet)
+  const protocols: Protocol[] = React.useMemo(() => {
+    const base = data?.data ?? []
+    if (!verificationFilter) return base
+    return base.filter((p) => p.verification_status === verificationFilter)
+  }, [data?.data, verificationFilter])
 
   // ── Selection ─────────────────────────────────────────────────────────────
   const [selected, setSelected] = React.useState<Set<string>>(new Set())
@@ -156,20 +162,22 @@ export default function ProtocolsPage() {
                   </Dialog.Close>
                 </div>
                 <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-text-muted uppercase tracking-wider">Protocol Name</label>
-                    <input type="text" placeholder="e.g. Jupiter Exchange" className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-text-muted uppercase tracking-wider">Wallet Public Key</label>
-                    <input type="text" placeholder="Base58 Solana Address" className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal font-mono placeholder:font-sans" />
+                  <div className="rounded-lg border border-border bg-card-2 p-4 space-y-2 text-sm text-text-secondary">
+                    <p className="font-bold text-text-primary">Protocols self-register via the Herald SDK.</p>
+                    <p>
+                      Direct your protocol team to call{' '}
+                      <code className="font-mono text-xs bg-card px-1.5 py-0.5 rounded border border-border">
+                        herald.registerProtocol(&#123; name, wallet &#125;)
+                      </code>{' '}
+                      using their Herald API key. The protocol will appear here once registered.
+                    </p>
+                    <p className="text-text-muted text-xs">
+                      After registration, use the <strong>Verify Protocol</strong> action on the protocol detail page to mark it as verified.
+                    </p>
                   </div>
                 </div>
-                <div className="flex justify-end gap-3 mt-6">
-                  <Dialog.Close asChild><Button variant="ghost">Cancel</Button></Dialog.Close>
-                  <Dialog.Close asChild>
-                    <Button onClick={() => toast.success('Protocol registration sequence initiated.')}>Register Protocol</Button>
-                  </Dialog.Close>
+                <div className="flex justify-end mt-2">
+                  <Dialog.Close asChild><Button variant="ghost">Close</Button></Dialog.Close>
                 </div>
               </Dialog.Content>
             </Dialog.Portal>
@@ -214,9 +222,22 @@ export default function ProtocolsPage() {
           <option value="suspended">Suspended</option>
         </select>
 
-        {(tierFilter !== undefined || statusFilter !== undefined) && (
+        {/* Verification filter */}
+        <select
+          className="bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal"
+          value={verificationFilter}
+          onChange={(e) => { setVerificationFilter(e.target.value); setPage(1) }}
+        >
+          <option value="">All Verification</option>
+          <option value="UNVERIFIED">Unverified</option>
+          <option value="PENDING">Pending Review</option>
+          <option value="VERIFIED">Verified</option>
+          <option value="REJECTED">Rejected</option>
+        </select>
+
+        {(tierFilter !== undefined || statusFilter !== undefined || verificationFilter) && (
           <button
-            onClick={() => { setTierFilter(undefined); setStatusFilter(undefined); setPage(1) }}
+            onClick={() => { setTierFilter(undefined); setStatusFilter(undefined); setVerificationFilter(''); setPage(1) }}
             className="text-xs text-text-muted hover:text-text-primary flex items-center gap-1"
           >
             <X size={12} /> Clear filters

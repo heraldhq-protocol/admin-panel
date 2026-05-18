@@ -31,14 +31,14 @@ const TIER_OPTIONS: { value: 1 | 2 | 3; label: string; desc: string }[] = [
 // ─── Pipeline config ──────────────────────────────────────────────────────────
 
 const STAGES: { value: PipelineStage | 'all'; label: string; color: string; dot: string }[] = [
-  { value: 'all',         label: 'All',         color: 'bg-card-2 text-text-muted border-border',                dot: 'bg-text-muted' },
-  { value: 'prospect',    label: 'Prospect',    color: 'bg-slate-800/60 text-slate-300 border-slate-700',        dot: 'bg-slate-400' },
-  { value: 'outreach',    label: 'Outreach',    color: 'bg-blue-900/40 text-blue-300 border-blue-800',           dot: 'bg-blue-400' },
-  { value: 'negotiating', label: 'Negotiating', color: 'bg-amber-900/30 text-amber-300 border-amber-800',        dot: 'bg-amber-400' },
-  { value: 'signed',      label: 'Signed',      color: 'bg-purple-900/30 text-purple-300 border-purple-800',     dot: 'bg-purple-400' },
-  { value: 'active',      label: 'Active',      color: 'bg-teal/10 text-teal border-teal/30',                    dot: 'bg-teal' },
-  { value: 'on_hold',     label: 'On Hold',     color: 'bg-orange-900/30 text-orange-300 border-orange-700',     dot: 'bg-orange-400' },
-  { value: 'churned',     label: 'Churned',     color: 'bg-red/10 text-red border-red/30',                       dot: 'bg-red' },
+  { value: 'all',         label: 'All',         color: 'bg-card-2 text-text-muted border-border',          dot: 'bg-text-muted' },
+  { value: 'prospect',    label: 'Prospect',    color: 'bg-slate-bg text-slate border-slate/20',            dot: 'bg-slate' },
+  { value: 'outreach',    label: 'Outreach',    color: 'bg-blue-bg text-blue border-blue/20',               dot: 'bg-blue' },
+  { value: 'negotiating', label: 'Negotiating', color: 'bg-amber-bg text-amber border-amber/20',            dot: 'bg-amber' },
+  { value: 'signed',      label: 'Signed',      color: 'bg-violet-bg text-violet border-violet/20',         dot: 'bg-violet' },
+  { value: 'active',      label: 'Active',      color: 'bg-teal/10 text-teal border-teal/30',               dot: 'bg-teal' },
+  { value: 'on_hold',     label: 'On Hold',     color: 'bg-orange-bg text-orange border-orange/20',         dot: 'bg-orange' },
+  { value: 'churned',     label: 'Churned',     color: 'bg-red/10 text-red border-red/30',                  dot: 'bg-red' },
 ]
 
 const CAMPAIGN_SOURCES: { value: CampaignSource; label: string }[] = [

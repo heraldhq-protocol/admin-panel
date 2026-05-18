@@ -35,6 +35,8 @@ import { useSuspendProtocol } from '@/hooks/use-suspend-protocol'
 import { useUnsuspendProtocol } from '@/hooks/use-unsuspend-protocol'
 import { useChangeTier } from '@/hooks/use-change-tier'
 import { useUpdateProtocolNotes } from '@/hooks/use-update-protocol-notes'
+import { useVerifyProtocol } from '@/hooks/use-verify-protocol'
+import { useRejectVerification } from '@/hooks/use-reject-verification'
 import { useDebounce } from '@/hooks/use-debounce'
 import { cn } from '@/lib/cn'
 import type { Tier } from '@/types/billing'
@@ -51,9 +53,9 @@ function formatAction(action: string) {
 function actionColor(action: string) {
   if (action.includes('suspend')) return 'text-red bg-red/10 border-red/20'
   if (action.includes('unsuspend') || action.includes('reactivate')) return 'text-teal bg-teal/10 border-teal/20'
-  if (action.includes('tier')) return 'text-purple-300 bg-purple-900/20 border-purple-700/30'
-  if (action.includes('strike')) return 'text-orange-300 bg-orange-900/20 border-orange-700/30'
-  if (action.includes('verify')) return 'text-blue-300 bg-blue-900/20 border-blue-700/30'
+  if (action.includes('tier')) return 'text-violet bg-violet-bg border-violet/20'
+  if (action.includes('strike')) return 'text-orange bg-orange-bg border-orange/20'
+  if (action.includes('verify')) return 'text-blue bg-blue-bg border-blue/20'
   if (action.includes('note')) return 'text-text-muted bg-card-2 border-border'
   return 'text-text-secondary bg-card-2 border-border'
 }
@@ -74,9 +76,16 @@ export default function ProtocolDetailsPage() {
   const changeTier = useChangeTier(id)
   const updateNotes = useUpdateProtocolNotes(id)
 
+  const verify = useVerifyProtocol(id)
+  const rejectVerification = useRejectVerification(id)
+
   const [activeTab, setActiveTab] = React.useState<Tab>('overview')
   const [suspendOpen, setSuspendOpen] = React.useState(false)
   const [suspendReason, setSuspendReason] = React.useState('')
+  const [verifyOpen, setVerifyOpen] = React.useState(false)
+  const [verifyNote, setVerifyNote] = React.useState('')
+  const [rejectOpen, setRejectOpen] = React.useState(false)
+  const [rejectNote, setRejectNote] = React.useState('')
   const [notes, setNotes] = React.useState('')
   const debouncedNotes = useDebounce(notes, 1000)
 
@@ -443,10 +452,10 @@ export default function ProtocolDetailsPage() {
                 onChange={(e) => changeTier.mutate(Number(e.target.value) as Tier)}
                 disabled={changeTier.isPending}
               >
-                <option value={0}>Developer (Free)</option>
-                <option value={1}>Growth ($99/mo)</option>
-                <option value={2}>Scale ($299/mo)</option>
-                <option value={3}>Enterprise ($999/mo)</option>
+                <option value={0}>Developer (Free — 1k sends/mo)</option>
+                <option value={1}>Growth ($99/mo — 50k sends)</option>
+                <option value={2}>Scale ($299/mo — 250k sends)</option>
+                <option value={3}>Enterprise ($999/mo — 1M sends)</option>
               </select>
               <p className="text-[10px] text-text-muted">This action will be logged with your admin ID.</p>
             </div>
@@ -510,6 +519,115 @@ export default function ProtocolDetailsPage() {
                   <ShieldCheck className="mr-2 h-4 w-4" />
                   Reactivate Protocol
                 </Button>
+              )}
+
+              {/* Verification actions — shown when not yet verified */}
+              {protocol.verification_status !== 'VERIFIED' && (
+                <div className="pt-2 space-y-2 border-t border-border">
+                  <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Verification</p>
+
+                  {/* Verify */}
+                  <Dialog.Root open={verifyOpen} onOpenChange={setVerifyOpen}>
+                    <Dialog.Trigger asChild>
+                      <Button variant="secondary" className="w-full">
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        Verify Protocol
+                      </Button>
+                    </Dialog.Trigger>
+                    <Dialog.Portal>
+                      <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-in fade-in" />
+                      <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-md bg-bg-elevated border border-border rounded-xl shadow-lg z-50 p-6 animate-in zoom-in-95 duration-200 focus:outline-none">
+                        <div className="flex items-center justify-between mb-4">
+                          <Dialog.Title className="text-lg font-syne font-bold">
+                            Verify {protocol.name}?
+                          </Dialog.Title>
+                          <Dialog.Close className="text-text-muted hover:text-text-primary h-8 w-8 flex items-center justify-center rounded-lg hover:bg-card-2">
+                            <X size={20} />
+                          </Dialog.Close>
+                        </div>
+                        <p className="text-sm text-text-secondary mb-4">
+                          Marks this protocol as verified. The note is logged for audit purposes.
+                        </p>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-text-muted uppercase tracking-wider">
+                            Internal Note (optional)
+                          </label>
+                          <textarea
+                            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal min-h-[80px] resize-none"
+                            placeholder="e.g. Docs verified, team KYC complete."
+                            value={verifyNote}
+                            onChange={(e) => setVerifyNote(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex justify-end gap-3 mt-6">
+                          <Dialog.Close asChild>
+                            <Button variant="ghost">Cancel</Button>
+                          </Dialog.Close>
+                          <Button
+                            disabled={verify.isPending}
+                            onClick={() => {
+                              verify.mutate(verifyNote || undefined, {
+                                onSuccess: () => { setVerifyOpen(false); setVerifyNote('') },
+                              })
+                            }}
+                          >
+                            Confirm Verification
+                          </Button>
+                        </div>
+                      </Dialog.Content>
+                    </Dialog.Portal>
+                  </Dialog.Root>
+
+                  {/* Reject verification */}
+                  <Dialog.Root open={rejectOpen} onOpenChange={setRejectOpen}>
+                    <Dialog.Trigger asChild>
+                      <Button variant="danger" className="w-full" size="sm">
+                        Reject Verification
+                      </Button>
+                    </Dialog.Trigger>
+                    <Dialog.Portal>
+                      <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-in fade-in" />
+                      <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-md bg-bg-elevated border border-border rounded-xl shadow-lg z-50 p-6 animate-in zoom-in-95 duration-200 focus:outline-none">
+                        <div className="flex items-center justify-between mb-4">
+                          <Dialog.Title className="text-lg font-syne font-bold text-red">
+                            Reject Verification for {protocol.name}?
+                          </Dialog.Title>
+                          <Dialog.Close className="text-text-muted hover:text-text-primary h-8 w-8 flex items-center justify-center rounded-lg hover:bg-card-2">
+                            <X size={20} />
+                          </Dialog.Close>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-text-muted uppercase tracking-wider">
+                            Reason <span className="text-red">*</span>
+                          </label>
+                          <textarea
+                            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red min-h-[80px] resize-none"
+                            placeholder="e.g. Incomplete documentation, unable to verify team identity."
+                            value={rejectNote}
+                            onChange={(e) => setRejectNote(e.target.value)}
+                          />
+                          <p className="text-[10px] text-text-muted">Min 5 characters.</p>
+                        </div>
+                        <div className="flex justify-end gap-3 mt-6">
+                          <Dialog.Close asChild>
+                            <Button variant="ghost">Cancel</Button>
+                          </Dialog.Close>
+                          <Button
+                            variant="danger"
+                            disabled={rejectNote.trim().length < 5 || rejectVerification.isPending}
+                            onClick={() => {
+                              rejectVerification.mutate(rejectNote, {
+                                onSuccess: () => { setRejectOpen(false); setRejectNote('') },
+                              })
+                            }}
+                          >
+                            Confirm Rejection
+                          </Button>
+                        </div>
+                      </Dialog.Content>
+                    </Dialog.Portal>
+                  </Dialog.Root>
+                </div>
               )}
             </div>
           </Card>

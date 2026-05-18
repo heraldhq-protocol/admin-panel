@@ -17,10 +17,10 @@ import { cn } from '@/lib/cn'
 // ─── Tier config ─────────────────────────────────────────────────────────────
 
 const TIERS = [
-  { value: 0, label: 'Developer', color: 'bg-text-muted/20 text-text-muted' },
-  { value: 1, label: 'Growth',    color: 'bg-blue-900/40 text-blue-300' },
-  { value: 2, label: 'Scale',     color: 'bg-purple-900/30 text-purple-300' },
-  { value: 3, label: 'Enterprise', color: 'bg-amber-900/30 text-amber-300' },
+  { value: 0, label: 'Developer',  color: 'bg-card-2 text-text-muted' },
+  { value: 1, label: 'Growth',     color: 'bg-teal/10 text-teal' },
+  { value: 2, label: 'Scale',      color: 'bg-violet-bg text-violet' },
+  { value: 3, label: 'Enterprise', color: 'bg-amber-bg text-amber' },
 ]
 
 // ─── Mini sparkline ───────────────────────────────────────────────────────────
@@ -61,10 +61,10 @@ function StatCard({
 }) {
   const colors = {
     teal:   'bg-teal/10 text-teal',
-    purple: 'bg-purple-900/30 text-purple-300',
-    amber:  'bg-amber-900/30 text-amber-300',
+    purple: 'bg-violet-bg text-violet',
+    amber:  'bg-amber-bg text-amber',
     red:    'bg-red/10 text-red',
-    blue:   'bg-blue-900/30 text-blue-300',
+    blue:   'bg-blue-bg text-blue',
   }
 
   return (

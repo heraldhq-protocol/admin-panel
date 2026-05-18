@@ -110,7 +110,7 @@ function StageStepper({ current }: { current: PipelineStage }) {
           'flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium',
           current === 'churned'
             ? 'bg-red/10 border-red/20 text-red'
-            : 'bg-orange-900/20 border-orange-700/30 text-orange-300',
+            : 'bg-orange-bg border-orange/20 text-orange',
         )}>
           <span className={cn('h-2 w-2 rounded-full', cfg.dot)} />
           {cfg.label} — {cfg.description}
@@ -285,7 +285,7 @@ export default function DesignPartnerDetail() {
           'flex items-center gap-3 px-4 py-3 rounded-xl border',
           expired
             ? 'bg-red/10 border-red/20 text-red'
-            : 'bg-amber-900/20 border-amber-700/30 text-amber-300',
+            : 'bg-amber-bg border-amber/20 text-amber',
         )}>
           <AlertTriangle size={18} className="shrink-0" />
           <div>
@@ -351,12 +351,12 @@ export default function DesignPartnerDetail() {
             ) : partner.billing_type === 'tier_grant' ? (
               <>
                 <Row label="Billing Type">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-purple-900/30 text-purple-300 border border-purple-700">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-violet-bg text-violet border border-violet/20">
                     Free Tier Grant
                   </span>
                 </Row>
                 <Row label="Granted Tier">
-                  <span className="font-bold text-purple-300">
+                  <span className="font-bold text-violet">
                     {TIER_OPTIONS.find((t) => t.value === partner.granted_tier)?.label ?? `Tier ${partner.granted_tier}`}
                   </span>
                 </Row>
@@ -454,11 +454,11 @@ export default function DesignPartnerDetail() {
                         editForm.pipeline_stage === s.value
                           ? s.value === 'active' ? 'bg-teal/10 border-teal/30 text-teal' :
                             s.value === 'churned' ? 'bg-red/10 border-red/20 text-red' :
-                            s.value === 'prospect' ? 'bg-slate-800 border-slate-600 text-slate-300' :
-                            s.value === 'outreach' ? 'bg-blue-900/50 border-blue-700 text-blue-300' :
-                            s.value === 'negotiating' ? 'bg-amber-900/40 border-amber-700 text-amber-300' :
-                            s.value === 'signed' ? 'bg-purple-900/40 border-purple-700 text-purple-300' :
-                            'bg-orange-900/30 border-orange-700 text-orange-300'
+                            s.value === 'prospect' ? 'bg-slate-bg border-slate/20 text-slate' :
+                            s.value === 'outreach' ? 'bg-blue-bg border-blue/20 text-blue' :
+                            s.value === 'negotiating' ? 'bg-amber-bg border-amber/20 text-amber' :
+                            s.value === 'signed' ? 'bg-violet-bg border-violet/20 text-violet' :
+                            'bg-orange-bg border-orange/20 text-orange'
                           : 'bg-card border-border text-text-muted',
                       )}
                     >
@@ -540,7 +540,7 @@ export default function DesignPartnerDetail() {
                             className={cn(
                               'py-2 px-3 rounded-lg border text-left transition-all',
                               editForm.granted_tier === t.value
-                                ? 'bg-purple-900/30 border-purple-600 text-purple-300'
+                                ? 'bg-violet-bg border-violet/30 text-violet'
                                 : 'bg-card border-border text-text-muted hover:border-border-2',
                             )}
                           >

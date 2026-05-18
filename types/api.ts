@@ -261,6 +261,33 @@ export interface TemplateFilters {
   protocol_id?: string
 }
 
+export interface TemplateVersion {
+  id: string
+  version: number
+  subject_template: string | null
+  created_at: string
+}
+
+export interface TemplateDetail extends PendingTemplate {
+  html_source: string | null
+  text_source: string | null
+  preview_text: string | null
+  herald_footer: string
+  is_active: boolean
+  is_default: boolean
+  versions: TemplateVersion[]
+  protocol: PendingTemplate['protocol'] & { tier: number }
+}
+
+export interface TemplateAnalysis {
+  source: 'ai' | 'rule-based'
+  spam_score: number
+  tone: string
+  flags: string[]
+  suggestions: string[]
+  summary: string
+}
+
 // ─── Abuse Reports ────────────────────────────────────────────────────
 export interface AbuseReport {
   protocol_id: string

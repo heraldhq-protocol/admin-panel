@@ -23,8 +23,8 @@ import type { Protocol } from '@/types/api'
 const TIER_PRICE_USD: Record<number, number> = {
   0: 0,
   1: 99,
-  2: 499,
-  3: 2_000,
+  2: 299,
+  3: 999,
 }
 
 const TIER_LABEL: Record<number, string> = {
@@ -37,8 +37,8 @@ const TIER_LABEL: Record<number, string> = {
 const TIER_SEND_LIMITS: Record<number, number> = {
   0: 1_000,
   1: 50_000,
-  2: 500_000,
-  3: 10_000_000,
+  2: 250_000,
+  3: 1_000_000,
 }
 
 const TIER_VARIANTS: Record<number, string> = {
@@ -76,10 +76,10 @@ function MetricCard({
 }) {
   const colors: Record<string, string> = {
     teal:   'bg-teal/10 text-teal',
-    amber:  'bg-amber-900/30 text-amber-300',
-    purple: 'bg-purple-900/30 text-purple-300',
+    amber:  'bg-amber-bg text-amber',
+    purple: 'bg-violet-bg text-violet',
     red:    'bg-red/10 text-red',
-    blue:   'bg-blue-900/30 text-blue-300',
+    blue:   'bg-blue-bg text-blue',
   }
 
   return (
@@ -172,11 +172,11 @@ export default function BillingPage() {
 
       {/* Stats row */}
       {isLoading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
             label="Total MRR"
             value={fmtUSD(totalMrrCents)}
@@ -268,14 +268,14 @@ export default function BillingPage() {
               <p className="text-sm">No protocols near their send limit.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto -mx-6 px-6">
+              <table className="w-full text-sm min-w-[420px]">
                 <thead className="text-[10px] text-text-muted uppercase tracking-wider border-b border-border">
                   <tr>
                     <th className="pb-2 text-left font-bold">Protocol</th>
-                    <th className="pb-2 text-left font-bold">Current Tier</th>
+                    <th className="pb-2 text-left font-bold hidden sm:table-cell">Tier</th>
                     <th className="pb-2 text-right font-bold">Usage</th>
-                    <th className="pb-2 text-right font-bold">Next Tier</th>
+                    <th className="pb-2 text-right font-bold hidden sm:table-cell">Next Tier</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -292,11 +292,11 @@ export default function BillingPage() {
                       >
                         <td className="py-2.5">
                           <div className="font-bold text-text-primary">{p.name}</div>
-                          <code className="text-[10px] text-text-muted">
+                          <code className="text-[10px] text-text-muted hidden sm:block">
                             {truncateAddress(p.protocol_pubkey, 6)}
                           </code>
                         </td>
-                        <td className="py-2.5">
+                        <td className="py-2.5 hidden sm:table-cell">
                           <Badge variant={TIER_VARIANTS[p.tier] as never}>
                             {TIER_LABEL[p.tier]?.toUpperCase()}
                           </Badge>
@@ -304,18 +304,18 @@ export default function BillingPage() {
                         <td className="py-2.5 text-right">
                           <div className={cn(
                             'font-mono text-xs font-bold',
-                            pct >= 95 ? 'text-red' : pct >= 80 ? 'text-amber-400' : 'text-text-primary',
+                            pct >= 95 ? 'text-red' : pct >= 80 ? 'text-amber' : 'text-text-primary',
                           )}>
                             {fmtPct(pct)}
                           </div>
-                          <div className="w-20 h-1 bg-card-2 rounded-full overflow-hidden ml-auto mt-1">
+                          <div className="w-16 h-1 bg-card-2 rounded-full overflow-hidden ml-auto mt-1">
                             <div
-                              className={cn('h-full rounded-full', pct >= 95 ? 'bg-red' : 'bg-amber-400')}
+                              className={cn('h-full rounded-full', pct >= 95 ? 'bg-red' : 'bg-amber')}
                               style={{ width: `${pct}%` }}
                             />
                           </div>
                         </td>
-                        <td className="py-2.5 text-right">
+                        <td className="py-2.5 text-right hidden sm:table-cell">
                           {nextTier ? (
                             <div className="text-xs text-text-muted">
                               <Badge variant={TIER_VARIANTS[nextTier] as never}>
@@ -326,7 +326,7 @@ export default function BillingPage() {
                               </div>
                             </div>
                           ) : (
-                            <span className="text-xs text-text-muted">At max tier</span>
+                            <span className="text-xs text-text-muted">Max tier</span>
                           )}
                         </td>
                       </tr>

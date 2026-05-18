@@ -81,8 +81,8 @@ export default function ModerationQueuePage() {
         const strikes = row.original.protocol_status?.strike_count ?? 0
         return (
           <div className="flex items-center gap-1">
-            {strikes > 0 && <AlertTriangle size={14} className="text-amber-500" />}
-            <span className={strikes >= 3 ? 'text-red-500 font-bold' : 'text-text-secondary'}>
+            {strikes > 0 && <AlertTriangle size={14} className="text-gold" />}
+            <span className={strikes >= 3 ? 'text-red font-bold' : 'text-text-secondary'}>
               {strikes}
             </span>
           </div>
@@ -111,8 +111,8 @@ export default function ModerationQueuePage() {
           )
         }
         const icons: Record<string, React.ReactNode> = {
-          approved: <CheckCircle size={12} className="text-green-500" />,
-          struck: <XCircle size={12} className="text-red-500" />,
+          approved: <CheckCircle size={12} className="text-green" />,
+          struck: <XCircle size={12} className="text-red" />,
           dismissed: <XCircle size={12} className="text-text-muted" />,
         }
         return (

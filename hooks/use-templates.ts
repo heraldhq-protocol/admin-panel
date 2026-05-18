@@ -34,3 +34,17 @@ export function useRejectTemplate() {
     },
   })
 }
+
+export function useTemplate(id: string) {
+  return useQuery({
+    queryKey: ['template', id],
+    queryFn: () => apiClient.getTemplate(id),
+    enabled: !!id,
+  })
+}
+
+export function useAnalyzeTemplate() {
+  return useMutation({
+    mutationFn: (id: string) => apiClient.analyzeTemplate(id),
+  })
+}

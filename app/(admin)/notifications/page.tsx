@@ -120,25 +120,25 @@ export default function NotificationsPage() {
 
       <div className="flex flex-col gap-3">
         {/* Search */}
-        <div className="relative max-w-sm">
+        <div className="relative w-full sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
           <input
             type="text"
             placeholder="Filter by Protocol ID…"
-            className="w-full bg-card border border-border rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-teal"
+            className="w-full bg-card border border-border rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-teal text-text-primary placeholder:text-text-muted"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
           />
         </div>
 
-        {/* Category filters */}
-        <div className="flex flex-wrap gap-2">
+        {/* Category + status filters — horizontally scrollable on mobile */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
           {CATEGORY_OPTIONS.map((c) => (
             <button
               key={c}
               onClick={() => toggleCategory(c)}
               className={cn(
-                'px-3 py-1 rounded-full text-xs font-bold border transition-colors',
+                'shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition-colors',
                 category === c
                   ? 'bg-teal text-white border-teal'
                   : 'bg-card border-border text-text-muted hover:border-teal/50',
@@ -153,7 +153,7 @@ export default function NotificationsPage() {
               key={s}
               onClick={() => toggleStatus(s)}
               className={cn(
-                'px-3 py-1 rounded-full text-xs font-bold border transition-colors capitalize',
+                'shrink-0 px-3 py-1 rounded-full text-xs font-bold border transition-colors capitalize',
                 status === s
                   ? 'bg-teal text-white border-teal'
                   : 'bg-card border-border text-text-muted hover:border-teal/50',

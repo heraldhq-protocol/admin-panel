@@ -1,6 +1,7 @@
 /* eslint-disable import/no-default-export */
 'use client'
 import * as React from 'react'
+import { useRouter } from 'next/navigation'
 import { CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/ui/page-header'
@@ -19,6 +20,7 @@ import { formatDistanceToNow } from 'date-fns'
 import type { PendingTemplate } from '@/types/api'
 
 export default function TemplatesPage() {
+  const router = useRouter()
   const [page, setPage] = React.useState(1)
   const [rejectDialog, setRejectDialog] = React.useState<{ open: boolean; templateId: string | null }>({
     open: false,
@@ -130,7 +132,7 @@ export default function TemplatesPage() {
             <Button
               size="sm"
               variant="ghost"
-              className="text-green-500 hover:text-green-400 hover:bg-green-500/10"
+              className="text-green hover:text-green/80 hover:bg-green/10"
               disabled={approveTemplate.isPending}
               onClick={(e: React.MouseEvent) => { e.stopPropagation(); void handleApprove(t.id, t.name) }}
             >
@@ -140,7 +142,7 @@ export default function TemplatesPage() {
             <Button
               size="sm"
               variant="ghost"
-              className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+              className="text-red hover:text-red/80 hover:bg-red/10"
               onClick={(e: React.MouseEvent) => { e.stopPropagation(); handleRejectOpen(t.id) }}
             >
               <XCircle size={14} className="mr-1" />
@@ -164,6 +166,7 @@ export default function TemplatesPage() {
         data={data?.data ?? []}
         isLoading={isLoading}
         emptyMessage="No templates pending review — queue is clear."
+        onRowClick={(row: { id: string }) => router.push(`/templates/${row.id}`)}
       />
 
       {totalPages > 1 && (

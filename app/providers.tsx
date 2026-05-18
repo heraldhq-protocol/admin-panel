@@ -2,10 +2,22 @@
 
 import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ThemeProvider } from 'next-themes'
+import { ThemeProvider, useTheme } from 'next-themes'
 import { Toaster } from 'sonner'
 import { TooltipProvider } from '@radix-ui/react-tooltip'
 import { MswProvider } from '../components/auth/msw-provider'
+
+function ThemedToaster() {
+  const { resolvedTheme } = useTheme()
+  return (
+    <Toaster
+      position="bottom-right"
+      richColors
+      closeButton
+      theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
+    />
+  )
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -28,7 +40,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <TooltipProvider>
         <MswProvider>
           <QueryClientProvider client={queryClient}>
-            <Toaster position="bottom-right" richColors closeButton />
+            <ThemedToaster />
             {children}
           </QueryClientProvider>
         </MswProvider>

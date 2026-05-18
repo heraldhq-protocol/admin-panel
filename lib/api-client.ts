@@ -20,6 +20,8 @@ import type {
   ModerationFilters,
   AuditLogEntry,
   PendingTemplate,
+  TemplateDetail,
+  TemplateAnalysis,
   TemplateFilters,
   AbuseReport,
   AbuseReportFilters,
@@ -148,6 +150,10 @@ export const apiClient = {
   // Template review
   getPendingTemplates: (filters?: TemplateFilters) =>
     client.get<PaginatedResponse<PendingTemplate>>('/templates/pending', { params: filters }).then(r => r.data),
+  getTemplate: (id: string) =>
+    client.get<TemplateDetail>(`/templates/${id}`).then(r => r.data),
+  analyzeTemplate: (id: string) =>
+    client.post<TemplateAnalysis>(`/templates/${id}/analyze`).then(r => r.data),
   approveTemplate: (id: string) =>
     client.post<{ success: boolean }>(`/templates/${id}/approve`).then(r => r.data),
   rejectTemplate: (id: string, reason: string) =>
