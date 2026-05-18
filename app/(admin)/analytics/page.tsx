@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useOverview } from '@/hooks/use-overview'
 import { useProtocols } from '@/hooks/use-protocols'
+import { formatCount } from '@/lib/format'
 import { cn } from '@/lib/cn'
 
 // ─── Tier config ─────────────────────────────────────────────────────────────
@@ -142,7 +143,7 @@ export default function AnalyticsPage() {
           />
           <StatCard
             label="Sends Today"
-            value={overview?.sends_today?.toLocaleString() ?? '—'}
+            value={overview?.sends_today != null ? formatCount(overview.sends_today) : '—'}
             delta={overview?.sends_today_delta ?? 0}
             icon={<Bell size={16} />}
             color="purple"
@@ -169,7 +170,7 @@ export default function AnalyticsPage() {
               Send Volume (Last 14 Days)
             </h3>
             <span className="text-xs text-text-muted font-mono">
-              {totalSendsWindow.toLocaleString()} total
+              {formatCount(totalSendsWindow)} total
             </span>
           </div>
           {overviewLoading ? (
@@ -196,7 +197,7 @@ export default function AnalyticsPage() {
                         />
                       </div>
                       <span className="text-[9px] text-text-muted">{d.date?.slice(8)}</span>
-                      <span className="text-[9px] text-teal font-mono">{d.sends >= 1000 ? `${(d.sends / 1000).toFixed(1)}k` : d.sends}</span>
+                      <span className="text-[9px] text-teal font-mono">{formatCount(d.sends)}</span>
                     </div>
                   )
                 })}

@@ -26,7 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useOverview } from '@/hooks/use-overview'
 import { useMetrics } from '@/hooks/use-metrics'
 import { useProtocols } from '@/hooks/use-protocols'
-import { formatRelativeTime } from '@/lib/format'
+import { formatRelativeTime, formatCount } from '@/lib/format'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -62,7 +62,7 @@ export default function DashboardPage() {
         <StatCard
           label="Sends Today"
           isLoading={overviewLoading}
-          value={overview ? `${(overview.sends_today / 1_000_000).toFixed(2)}M` : 0}
+          value={overview ? formatCount(overview.sends_today) : '—'}
           delta={overview?.sends_today_delta ?? 0}
           trend="up"
           suffix="sends"
@@ -103,7 +103,7 @@ export default function DashboardPage() {
         <StatCard
           label="All-Time Delivered"
           isLoading={metricsLoading}
-          value={metrics?.notificationsSent != null ? `${(metrics.notificationsSent / 1_000_000).toFixed(2)}M` : 0}
+          value={metrics?.notificationsSent != null ? formatCount(metrics.notificationsSent) : '—'}
           delta={0}
           trend="neutral"
         />
@@ -138,7 +138,17 @@ export default function DashboardPage() {
                     tick={{ fill: 'var(--color-text-muted)', fontSize: 12 }}
                     dy={10}
                   />
-                  <YAxis hide domain={['dataMin - 10000', 'dataMax + 10000']} />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'var(--color-text-muted)', fontSize: 11 }}
+                    tickFormatter={(v: number) => formatCount(v)}
+                    width={36}
+                    domain={([min, max]: [number, number]) => {
+                      const pad = Math.max(Math.ceil((max - min) * 0.15), 1)
+                      return [Math.max(0, min - pad), max + pad]
+                    }}
+                  />
                   <RechartsTooltip
                     contentStyle={{
                       backgroundColor: 'var(--color-card)',
@@ -146,7 +156,7 @@ export default function DashboardPage() {
                       borderRadius: '8px',
                       fontSize: '12px',
                     }}
-                    formatter={(v: any) => [`${(Number(v || 0) / 1000).toFixed(1)}K`, 'Sends']}
+                    formatter={(v: any) => [formatCount(Number(v || 0)), 'Sends']}
                   />
                   <Area
                     type="monotone"
@@ -211,7 +221,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <Badge variant={p.tier === 3 ? 'enterprise' : 'growth'}>
-                      {(p.sends_this_period / 1000).toFixed(0)}K
+                      {formatCount(p.sends_this_period)}
                     </Badge>
                   </div>
                 ))}
