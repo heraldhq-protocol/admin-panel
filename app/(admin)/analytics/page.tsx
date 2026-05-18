@@ -384,7 +384,7 @@ export default function AnalyticsPage() {
                 tick={TICK}
                 tickFormatter={(v: number) => formatCount(v)}
                 width={40}
-                domain={([min, max]: [number, number]) => {
+                domain={([min, max]: readonly [number, number]): [number, number] => {
                   const pad = Math.max(Math.ceil((max - min) * 0.15), 1)
                   return [Math.max(0, min - pad), max + pad]
                 }}

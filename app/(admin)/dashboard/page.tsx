@@ -144,7 +144,7 @@ export default function DashboardPage() {
                     tick={{ fill: 'var(--color-text-muted)', fontSize: 11 }}
                     tickFormatter={(v: number) => formatCount(v)}
                     width={36}
-                    domain={([min, max]: [number, number]) => {
+                    domain={([min, max]: readonly [number, number]): [number, number] => {
                       const pad = Math.max(Math.ceil((max - min) * 0.15), 1)
                       return [Math.max(0, min - pad), max + pad]
                     }}
