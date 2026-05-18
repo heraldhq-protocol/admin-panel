@@ -43,7 +43,7 @@ client.interceptors.response.use(
   (error) => {
     if (typeof window !== 'undefined' && error.response?.status === 401 && !_authRedirectPending) {
       _authRedirectPending = true
-      window.location.href = '/api/auth/signout?callbackUrl=/login'
+      window.location.href = '/signout'
     }
     return Promise.reject(error)
   }

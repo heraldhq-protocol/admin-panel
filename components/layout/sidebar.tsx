@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { signOut, useSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { ChevronLeft, ChevronRight, LogOut, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useUiStore } from '@/lib/stores/ui-store'
@@ -54,9 +54,8 @@ export function SidebarNav() {
     .slice(0, 2)
     .toUpperCase()
 
-  async function handleSignOut() {
-    await signOut({ redirect: false })
-    router.push('/login')
+  function handleSignOut() {
+    router.push('/signout')
   }
 
   return (
