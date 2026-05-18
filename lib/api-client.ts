@@ -51,8 +51,8 @@ client.interceptors.response.use(
 
 export const apiClient = {
   // Overview
-  getOverview: () =>
-    client.get<OverviewStats>('/overview').then(r => r.data),
+  getOverview: (params?: { days?: number }) =>
+    client.get<OverviewStats>('/overview', { params }).then(r => r.data),
 
   // Protocols
   getProtocols: (filters?: ProtocolFilters) =>

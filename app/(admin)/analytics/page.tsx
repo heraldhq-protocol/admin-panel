@@ -23,6 +23,21 @@ import { useMetrics } from '@/hooks/use-metrics'
 import { formatCount } from '@/lib/format'
 import { cn } from '@/lib/cn'
 
+// ─── Time range config ────────────────────────────────────────────────────────
+
+const TIME_RANGES = [
+  { label: '24h',  days: 1   },
+  { label: '7d',   days: 7   },
+  { label: '14d',  days: 14  },
+  { label: '1mo',  days: 30  },
+  { label: '3mo',  days: 90  },
+  { label: '6mo',  days: 180 },
+  { label: '1yr',  days: 365 },
+  { label: 'All',  days: 0   },
+] as const
+
+type RangeDays = typeof TIME_RANGES[number]['days']
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TIERS = [
@@ -78,6 +93,7 @@ function QuotaTooltip({
 }) {
   if (!active || !payload?.length) return null
   const d = payload[0]
+  if (!d) return null
   return (
     <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg text-xs space-y-1">
       <p className="font-medium text-text-muted">{d.payload.name}</p>
@@ -158,7 +174,9 @@ export default function AnalyticsPage() {
   const [isMounted, setIsMounted] = React.useState(false)
   React.useEffect(() => { setIsMounted(true) }, [])
 
-  const { data: overview, isLoading: overviewLoading } = useOverview()
+  const [rangeDays, setRangeDays] = React.useState<RangeDays>(7)
+
+  const { data: overview, isLoading: overviewLoading } = useOverview({ days: rangeDays })
   const { data: allProtocols, isLoading: protocolsLoading } = useProtocols({ per_page: 200 } as never)
   const { data: metrics, isLoading: metricsLoading } = useMetrics()
 
@@ -301,21 +319,38 @@ export default function AnalyticsPage() {
             icon={<TrendingUp size={16} className="text-teal" />}
             title="Send Volume"
           />
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-text-muted">
-            <span>
-              <span className="font-mono text-text-primary font-bold">{formatCount(totalSendsWindow)}</span>
-              {' '}total ({sendsHistory.length}d)
-            </span>
-            <span>
-              avg <span className="font-mono text-text-primary font-bold">{formatCount(avgSendsPerDay)}</span>/day
-            </span>
-            {peakDay.sends > 0 && (
-              <span className="hidden sm:inline">
-                peak <span className="font-mono text-teal font-bold">{formatCount(peakDay.sends)}</span>
-                {' '}on {peakDay.date?.slice(5)}
-              </span>
-            )}
+          {/* Range filter pills */}
+          <div className="flex items-center gap-1 flex-wrap">
+            {TIME_RANGES.map((r) => (
+              <button
+                key={r.days}
+                onClick={() => setRangeDays(r.days)}
+                className={cn(
+                  'px-2.5 py-1 rounded-md text-xs font-bold transition-colors',
+                  rangeDays === r.days
+                    ? 'bg-teal text-black'
+                    : 'text-text-muted hover:text-text-primary hover:bg-card-2',
+                )}
+              >
+                {r.label}
+              </button>
+            ))}
           </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-text-muted">
+          <span>
+            <span className="font-mono text-text-primary font-bold">{formatCount(totalSendsWindow)}</span>
+            {' '}total ({sendsHistory.length}d)
+          </span>
+          <span>
+            avg <span className="font-mono text-text-primary font-bold">{formatCount(avgSendsPerDay)}</span>/day
+          </span>
+          {peakDay.sends > 0 && (
+            <span className="hidden sm:inline">
+              peak <span className="font-mono text-teal font-bold">{formatCount(peakDay.sends)}</span>
+              {' '}on {peakDay.date?.slice(5)}
+            </span>
+          )}
         </div>
 
         {overviewLoading ? (
