@@ -26,7 +26,7 @@ export class RouteErrorBoundary extends Component<Props, State> {
     console.error('[RouteErrorBoundary]', error, info.componentStack)
   }
 
-  private reset = () => this.setState({ hasError: false, error: undefined })
+  private reset = () => this.setState({ hasError: false } as State)
 
   render() {
     if (this.state.hasError) {

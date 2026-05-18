@@ -9,7 +9,7 @@ const paddingMap = {
   none: '',
   sm: 'p-3',
   md: 'p-6',
-  lg: 'p-8',
+  lg: 'p-6',
 }
 
 function Card({ className, padding = 'md', ...props }: CardProps) {

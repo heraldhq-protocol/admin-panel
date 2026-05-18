@@ -6,7 +6,7 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import * as Dialog from '@radix-ui/react-dialog'
 import {
-  Users, Plus, Search, ExternalLink, ShieldCheck, Gem,
+  Plus, Search, ExternalLink, ShieldCheck, Gem,
   DollarSign, AlertTriangle, Download, X, Mail,
   LayoutList, Columns,
 } from 'lucide-react'
@@ -174,16 +174,16 @@ export default function DesignPartnersPage() {
         protocol_id: form.protocol_id,
         retainer_amount_cents: cents,
         retainer_start: form.retainer_start,
-        retainer_end: form.retainer_end || undefined,
+        ...(form.retainer_end ? { retainer_end: form.retainer_end } : {}),
         equity_warrant_issued: form.equity_warrant_issued,
         pipeline_stage: form.pipeline_stage,
-        contact_name: form.contact_name || undefined,
-        contact_email: form.contact_email || undefined,
-        campaign_source: (form.campaign_source as CampaignSource) || undefined,
-        notes: form.notes || undefined,
+        ...(form.contact_name ? { contact_name: form.contact_name } : {}),
+        ...(form.contact_email ? { contact_email: form.contact_email } : {}),
+        ...(form.campaign_source ? { campaign_source: form.campaign_source as CampaignSource } : {}),
+        ...(form.notes ? { notes: form.notes } : {}),
         billing_type: form.billing_type,
-        granted_tier: form.billing_type === 'tier_grant' ? form.granted_tier : undefined,
-        tier_grant_expires_at: form.billing_type === 'tier_grant' && form.tier_grant_expires_at ? form.tier_grant_expires_at : undefined,
+        ...(form.billing_type === 'tier_grant' ? { granted_tier: form.granted_tier } : {}),
+        ...(form.billing_type === 'tier_grant' && form.tier_grant_expires_at ? { tier_grant_expires_at: form.tier_grant_expires_at } : {}),
       },
       {
         onSuccess: () => {
@@ -244,7 +244,7 @@ export default function DesignPartnersPage() {
         <StatCard label="Monthly Revenue" value={`$${(activeMrr / 100).toLocaleString()}`} icon={<DollarSign size={16} />} color="teal" />
         <StatCard label="Active Partners" value={activeCount} icon={<ShieldCheck size={16} />} color="teal" />
         <StatCard label="Pipeline Value" value={`$${(pipelineValue / 100).toLocaleString()}`} icon={<Gem size={16} />} color="gold" />
-        <StatCard label="Renewing ≤30 days" value={renewingSoon} icon={<AlertTriangle size={16} />} color={renewingSoon > 0 ? 'red' : undefined} />
+        <StatCard label="Renewing ≤30 days" value={renewingSoon} icon={<AlertTriangle size={16} />} color={renewingSoon > 0 ? 'red' : 'teal'} />
       </div>
 
       {/* Stage filter pills */}
@@ -390,7 +390,7 @@ export default function DesignPartnersPage() {
                       </tr>
                     )
                   : pagedPartners.map((p) => {
-                      const stage = stageCfg(p.pipeline_stage)
+                      const stage = stageCfg(p.pipeline_stage)!
                       const days = daysUntilRenewal(p.retainer_end)
                       const renewalWarning = days !== null && days >= 0 && days <= 30
 

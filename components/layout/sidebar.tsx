@@ -28,7 +28,7 @@ function useSidebarBadges(): Record<string, number> {
 
   return {
     openIncidents:        overview?.open_incidents ?? 0,
-    failedReceipts:       receipts?.data?.length ?? 0,
+    failedReceipts:       receipts?.length ?? 0,
     pendingModeration:    moderation?.total ?? 0,
     pendingTemplates:     templates?.total ?? 0,
     pendingVerifications: 0, // populated when protocol verification endpoint exposes count

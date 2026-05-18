@@ -1,5 +1,6 @@
 import { Card } from './card'
 import { Badge } from './badge'
+import { Skeleton } from './skeleton'
 import { cn } from '../../lib/cn'
 
 interface StatCardProps {
@@ -8,6 +9,7 @@ interface StatCardProps {
   delta?: string | number
   trend?: 'up' | 'down' | 'neutral'
   suffix?: string
+  isLoading?: boolean
   className?: string
 }
 
@@ -17,6 +19,7 @@ export function StatCard({
   delta,
   trend,
   suffix,
+  isLoading,
   className,
 }: StatCardProps) {
   return (
@@ -24,17 +27,21 @@ export function StatCard({
       <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
         {label}
       </span>
-      <div className="flex items-baseline gap-2">
-        <span className="font-syne text-3xl font-bold text-text-primary">
-          {value}
-        </span>
-        {suffix && (
-          <span className="text-sm font-medium text-text-secondary">
-            {suffix}
+      {isLoading ? (
+        <Skeleton className="h-9 w-24 mt-1" />
+      ) : (
+        <div className="flex items-baseline gap-2">
+          <span className="font-syne text-3xl font-bold text-text-primary">
+            {value}
           </span>
-        )}
-      </div>
-      {delta !== undefined && (
+          {suffix && (
+            <span className="text-sm font-medium text-text-secondary">
+              {suffix}
+            </span>
+          )}
+        </div>
+      )}
+      {!isLoading && delta !== undefined && (
         <div className="mt-1 flex items-center gap-1.5">
           <Badge
             variant={trend === 'up' ? 'active' : trend === 'down' ? 'suspended' : 'developer'}
@@ -42,7 +49,7 @@ export function StatCard({
           >
             {trend === 'up' && '+'}
             {delta}
-            {trend === 'up' ? '%' : trend === 'down' ? '%' : ''}
+            {trend === 'up' || trend === 'down' ? '%' : ''}
           </Badge>
           <span className="text-[10px] text-text-muted font-medium">vs last month</span>
         </div>

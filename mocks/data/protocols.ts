@@ -1,7 +1,16 @@
 import type { Protocol } from '../../types/api'
 
+const baseProtocol = {
+  verification_status: 'UNVERIFIED' as const,
+  is_suspended: false,
+  strike_count: 0,
+  strikes_reset_at: null,
+  last_strike_at: null,
+}
+
 export const mockProtocols: Protocol[] = [
   {
+    ...baseProtocol,
     id: '01HXKP9M2Q3R5S6T7U8V9W0X',
     protocol_pubkey: '7xR4mKp2nQwBvTsYjL8dHcFoEa3ZiXuWYnRp9zK2mS',
     name: 'Drift Protocol',
@@ -18,6 +27,7 @@ export const mockProtocols: Protocol[] = [
     admin_notes: null,
   },
   {
+    ...baseProtocol,
     id: '01HXKP9M2Q3R5S6T7U8V9W0Y',
     protocol_pubkey: '9zK2mSwBvRsXjM8eJcGoFb3AiYuV4nPp',
     name: 'Jupiter Aggregator',
@@ -34,6 +44,7 @@ export const mockProtocols: Protocol[] = [
     admin_notes: null,
   },
   {
+    ...baseProtocol,
     id: '01HXKP9M2Q3R5S6T7U8V9W0Z',
     protocol_pubkey: '3eL8mNp4rQwTvXsYjK9cHdFoBa4ZiYuWYnSp0zL3mS',
     name: 'Mango Markets',
@@ -41,7 +52,7 @@ export const mockProtocols: Protocol[] = [
     is_active: true,
     suspension_reason: null,
     sends_this_period: 245_192,
-    sends_limit: 250_000, // near limit
+    sends_limit: 250_000,
     period_reset_at: '2026-04-01T00:00:00Z',
     created_at: '2026-02-10T11:45:33Z',
     stripe_customer_id: 'cus_Qy9mNk4xRs2Vb',
@@ -50,11 +61,13 @@ export const mockProtocols: Protocol[] = [
     admin_notes: null,
   },
   {
+    ...baseProtocol,
     id: '01HXKP9M2Q3R5S6T7U8V9W1A',
     protocol_pubkey: '5fN0mRp6tQwVvZsYjL1eHfFoCa6ZiYuWYnTq2zN5mS',
     name: 'Orca',
     tier: 2,
     is_active: false,
+    is_suspended: true,
     suspension_reason: 'Non-payment Q1 2026',
     sends_this_period: 0,
     sends_limit: 250_000,
@@ -66,6 +79,7 @@ export const mockProtocols: Protocol[] = [
     admin_notes: null,
   },
   {
+    ...baseProtocol,
     id: '01HXKP9M2Q3R5S6T7U8V9W1B',
     protocol_pubkey: '7gP2mTp8vQwXvAsYjM3gFhFoDa8ZiYuWYnUr4zP7mS',
     name: 'Raydium',
@@ -81,21 +95,21 @@ export const mockProtocols: Protocol[] = [
     design_partner: false,
     admin_notes: null,
   },
-  // Adding more entries to reach the target of 20+
   ...Array.from({ length: 15 }).map((_, i) => ({
+    ...baseProtocol,
     id: `01HXKP9M2Q3R5S6T7U8V9W${(i + 2).toString(16).toUpperCase().padStart(2, '0')}`,
     protocol_pubkey: `Pubkey${i}Base58FormatStringExample`,
     name: `Alpha Protocol ${i + 1}`,
-    tier: (i % 3) as any,
+    tier: (i % 3) as 0 | 1 | 2 | 3,
     is_active: true,
     suspension_reason: null,
     sends_this_period: Math.floor(Math.random() * 10000),
-    sends_limit: [1000, 50000, 250000][i % 3] || 1000,
+    sends_limit: ([1000, 50000, 250000] as const)[i % 3] ?? 1000,
     period_reset_at: '2026-04-01T00:00:00Z',
     created_at: '2026-03-15T12:00:00Z',
     stripe_customer_id: `cus_test_${i}`,
     contact_email_hash: `hash_${i}_example_sha256`,
     design_partner: false,
     admin_notes: null,
-  }))
+  })),
 ]

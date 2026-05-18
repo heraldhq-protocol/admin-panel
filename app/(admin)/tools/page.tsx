@@ -11,8 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { apiClient } from '@/lib/api-client'
-import { formatTier, truncateAddress } from '@/lib/format'
-import { cn } from '@/lib/cn'
+import { formatTier } from '@/lib/format'
 import type { Protocol } from '@/types/api'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────

@@ -1,12 +1,14 @@
 import type { NextConfig } from 'next'
 
-// Fail the build immediately if running in production without a real TOTP secret.
-// This prevents the dev-only bypass from ever reaching a deployed environment.
-if (process.env.NODE_ENV === 'production' && !process.env.TOTP_SECRET) {
-  throw new Error(
-    '[Herald] TOTP_SECRET env var must be set in production. ' +
-    'Set it in your deployment environment before building.'
-  )
+// Fail the build in production if required env vars are missing.
+if (process.env.NODE_ENV === 'production') {
+  const required = ['NEXTAUTH_SECRET', 'HERALD_BACKEND_URL', 'HERALD_ADMIN_KEY']
+  const missing = required.filter((k) => !process.env[k])
+  if (missing.length > 0) {
+    throw new Error(
+      `[Herald] Missing required env vars for production build: ${missing.join(', ')}`
+    )
+  }
 }
 
 const securityHeaders = [

@@ -25,22 +25,49 @@ export default function LoginPage() {
     setIsLoading(true)
     setError(null)
     try {
-      // Simulate Solana wallet signature
-      // In a real app, we would use @solana/wallet-adapter-react
-      const result = await signIn('wallet', {
-        publicKey: '7xR4mKp2nQwBvTsYjL8dHcFoEa3ZiXuWYnRp9zK2mS',
-        signature: 'simulated_sig',
-        message: 'Login to Herald Admin',
-        redirect: false,
-      })
+      // Real wallet auth: request Phantom/Solflare to sign a timestamped message.
+      // In MSW dev mode, window.solana may be absent — the backend mock bypasses signature check.
+      const solana = (window as any).solana ?? (window as any).solflare
+      let publicKey: string
+      let signature: string
+      const message = `Sign in to Herald Dashboard\nWallet: {pubkey}\nTimestamp: ${Date.now()}`
 
-      if (result?.error) {
-        setError('Authentication failed')
+      if (solana?.isPhantom || solana?.isSolflare) {
+        await solana.connect()
+        publicKey = solana.publicKey.toString()
+        const signedMsg = message.replace('{pubkey}', publicKey)
+        const encoded = new TextEncoder().encode(signedMsg)
+        const { signature: sigBytes } = await solana.signMessage(encoded, 'utf8')
+        // base64url-encode the signature bytes — backend accepts this alongside bs58
+        signature = btoa(String.fromCharCode(...sigBytes))
+          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+        const result = await signIn('wallet', {
+          publicKey,
+          signature,
+          message: signedMsg,
+          redirect: false,
+        })
+        if (result?.error) {
+          setError('Wallet not authorized. Contact a super_admin to add your wallet.')
+        } else {
+          router.push('/dashboard')
+        }
       } else {
-        router.push('/dashboard')
+        // No wallet extension — dev/mock mode: use placeholder values that MSW accepts
+        const result = await signIn('wallet', {
+          publicKey: 'HeraldDevWallet1111111111111111111111111111',
+          signature: 'dev_mock_sig',
+          message: message.replace('{pubkey}', 'HeraldDevWallet1111111111111111111111111111'),
+          redirect: false,
+        })
+        if (result?.error) {
+          setError('No Solana wallet detected. Install Phantom to sign in.')
+        } else {
+          router.push('/dashboard')
+        }
       }
     } catch (e) {
-      setError('An unexpected error occurred')
+      setError((e as Error).message || 'Wallet connection failed')
     } finally {
       setIsLoading(false)
     }
@@ -85,13 +112,16 @@ export default function LoginPage() {
         </div>
 
         <Card className="p-1 space-y-0 overflow-hidden border-border bg-card/50 backdrop-blur-sm">
-          <div className="flex p-1 gap-1 bg-card-2/50 rounded-t-xl">
+          <div role="tablist" className="flex p-1 gap-1 bg-card-2/50 rounded-t-xl">
             <button
+              type="button"
+              role="tab"
+              aria-selected={method === 'wallet'}
               onClick={() => setMethod('wallet')}
               className={cn(
                 'flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-all',
-                method === 'wallet' 
-                  ? 'bg-card text-text-primary shadow-sm ring-1 ring-border' 
+                method === 'wallet'
+                  ? 'bg-card text-text-primary shadow-sm ring-1 ring-border'
                   : 'text-text-muted hover:text-text-secondary'
               )}
             >
@@ -99,11 +129,14 @@ export default function LoginPage() {
               Wallet
             </button>
             <button
+              type="button"
+              role="tab"
+              aria-selected={method === 'otp'}
               onClick={() => setMethod('otp')}
               className={cn(
                 'flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-all',
-                method === 'otp' 
-                  ? 'bg-card text-text-primary shadow-sm ring-1 ring-border' 
+                method === 'otp'
+                  ? 'bg-card text-text-primary shadow-sm ring-1 ring-border'
                   : 'text-text-muted hover:text-text-secondary'
               )}
             >
@@ -164,7 +197,7 @@ export default function LoginPage() {
             )}
 
             {error && (
-              <div className="mt-4 p-3 rounded-md bg-admin-bg border border-admin/20 text-admin text-xs font-medium text-center animate-in fade-in slide-in-from-top-1">
+              <div role="alert" className="mt-4 p-3 rounded-md bg-red/10 border border-red/20 text-red text-xs font-medium text-center animate-in fade-in slide-in-from-top-1">
                 {error}
               </div>
             )}

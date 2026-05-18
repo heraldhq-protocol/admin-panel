@@ -13,6 +13,29 @@ function isAuthMethod(v: unknown): v is AuthMethod {
   return AUTH_METHODS.includes(v as AuthMethod)
 }
 
+const BACKEND_URL = process.env.HERALD_BACKEND_URL ?? 'http://localhost:3001/v1'
+
+/**
+ * Call the real backend admin auth endpoint.
+ * Returns the parsed JSON response or throws on non-OK.
+ */
+async function callAdminAuth(
+  endpoint: 'wallet' | 'email',
+  payload: Record<string, string>,
+): Promise<{ admin: { id: string; displayName: string; role: string; authMethod: string } }> {
+  const url = `${BACKEND_URL}/admin-auth/${endpoint}`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: 'Auth failed' }))
+    throw new Error((err as any).message ?? 'Auth failed')
+  }
+  return res.json()
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
@@ -24,19 +47,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         message: { label: 'Message', type: 'text' },
       },
       async authorize(credentials) {
-        // In MSW environment, we simulate validation
-        if (!credentials?.publicKey) return null
+        if (!credentials?.publicKey || !credentials?.signature || !credentials?.message) {
+          return null
+        }
 
-        // Success simulation
-        return {
-          id: 'admin_01',
-          name: 'Alex Rivera',
-          role: 'super_admin' as AdminRole,
-          auth_method: 'wallet' as AuthMethod,
-          wallet_address: credentials.publicKey as string,
+        // MSW dev-mode: skip real backend when mocks are enabled
+        if (process.env.NEXT_PUBLIC_ENABLE_MOCKS === 'true') {
+          return {
+            id: 'admin_mock_01',
+            name: 'Alex Rivera (mock)',
+            role: 'super_admin' as AdminRole,
+            auth_method: 'wallet' as AuthMethod,
+            wallet_address: credentials.publicKey as string,
+          }
+        }
+
+        try {
+          const { admin } = await callAdminAuth('wallet', {
+            wallet_pubkey: credentials.publicKey as string,
+            signature: credentials.signature as string,
+            message: credentials.message as string,
+          })
+
+          return {
+            id: admin.id,
+            name: admin.displayName,
+            role: admin.role as AdminRole,
+            auth_method: admin.authMethod as AuthMethod,
+            wallet_address: credentials.publicKey as string,
+          }
+        } catch (err) {
+          console.error('[auth] wallet login failed:', (err as Error).message)
+          return null
         }
       },
     }),
+
     Credentials({
       id: 'email-totp',
       name: 'Email + TOTP',
@@ -47,27 +93,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.code) return null
 
-        // Dev-only bypass — never reaches production (next.config.ts enforces TOTP_SECRET)
-        if (process.env.NODE_ENV === 'development' && credentials.code === '123456') {
+        // MSW dev-mode bypass — never reaches production
+        if (process.env.NEXT_PUBLIC_ENABLE_MOCKS === 'true' && credentials.code === '123456') {
           return {
-            id: 'admin_02',
-            name: 'Sarah Chen',
+            id: 'admin_mock_02',
+            name: 'Sarah Chen (mock)',
             role: 'admin' as AdminRole,
             auth_method: 'email-totp' as AuthMethod,
           }
         }
 
-        // Production: validate against real TOTP secret
-        // Replace with your TOTP library (e.g. otplib) when wiring production auth
-        if (process.env.NODE_ENV === 'production') {
-          // TODO: verifyTotp(credentials.code, process.env.TOTP_SECRET!)
+        // Production: validate against AdminUser table via backend
+        if (process.env.NODE_ENV === 'production' && !process.env.HERALD_BACKEND_URL) {
+          console.error('[auth] HERALD_BACKEND_URL not set in production')
           return null
         }
 
-        return null
+        try {
+          const { admin } = await callAdminAuth('email', {
+            email: credentials.email as string,
+            totp_code: credentials.code as string,
+          })
+
+          return {
+            id: admin.id,
+            name: admin.displayName,
+            role: admin.role as AdminRole,
+            auth_method: admin.authMethod as AuthMethod,
+          }
+        } catch (err) {
+          console.error('[auth] email-totp login failed:', (err as Error).message)
+          return null
+        }
       },
     }),
   ],
+
   callbacks: {
     jwt({ token, user }) {
       if (user) {
@@ -96,6 +157,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session
     },
   },
+
   pages: {
     signIn: '/login',
   },

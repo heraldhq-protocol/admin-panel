@@ -43,7 +43,6 @@ const PIPELINE_STAGES: { value: PipelineStage; label: string; color: string; dot
 ]
 
 const FLOW_STAGES = PIPELINE_STAGES.filter((s) => !['on_hold', 'churned'].includes(s.value))
-const OFF_TRACK_STAGES = PIPELINE_STAGES.filter((s) => ['on_hold', 'churned'].includes(s.value))
 
 const CAMPAIGN_SOURCES: { value: CampaignSource; label: string }[] = [
   { value: 'conference',    label: 'Conference' },
@@ -62,8 +61,8 @@ function daysUntilRenewal(retainerEnd: string | null): number | null {
   return Math.ceil((new Date(retainerEnd).getTime() - Date.now()) / 86_400_000)
 }
 
-function stageCfg(stage: PipelineStage | string) {
-  return PIPELINE_STAGES.find((s) => s.value === stage) ?? PIPELINE_STAGES[0]
+function stageCfg(stage: PipelineStage | string): { label: string; value: string; color: string; dot: string; description: string } {
+  return PIPELINE_STAGES.find((s) => s.value === stage) ?? { label: String(stage), value: String(stage), color: 'text-text-muted', dot: 'bg-text-muted', description: '' }
 }
 
 // ─── Stage stepper ────────────────────────────────────────────────────────────
@@ -79,7 +78,6 @@ function StageStepper({ current }: { current: PipelineStage }) {
         {FLOW_STAGES.map((s, i) => {
           const isPast = !isOffTrack && i < flowIdx
           const isCurrent = !isOffTrack && s.value === current
-          const isFuture = isOffTrack || i > flowIdx
 
           return (
             <React.Fragment key={s.value}>
@@ -194,8 +192,8 @@ export default function DesignPartnerDetail() {
       : 0
     updatePartner.mutate(
       {
-        retainer_amount_cents: isNaN(cents) ? undefined : cents,
-        retainer_start: editForm.retainer_start || undefined,
+        ...(!isNaN(cents) ? { retainer_amount_cents: cents } : {}),
+        ...(editForm.retainer_start ? { retainer_start: editForm.retainer_start } : {}),
         retainer_end: editForm.retainer_end || null,
         equity_warrant_issued: editForm.equity_warrant_issued,
         feedback_sessions: editForm.feedback_sessions,

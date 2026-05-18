@@ -10,7 +10,6 @@ import {
 import { PageHeader } from '@/components/ui/page-header'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Badge } from '@/components/ui/badge'
 import { useOverview } from '@/hooks/use-overview'
 import { useProtocols } from '@/hooks/use-protocols'
 import { cn } from '@/lib/cn'
@@ -144,7 +143,7 @@ export default function AnalyticsPage() {
           <StatCard
             label="Sends Today"
             value={overview?.sends_today?.toLocaleString() ?? '—'}
-            delta={overview?.sends_today_delta}
+            delta={overview?.sends_today_delta ?? 0}
             icon={<Bell size={16} />}
             color="purple"
           />
@@ -155,7 +154,7 @@ export default function AnalyticsPage() {
               : '—'}
             delta={overview?.delivery_rate_delta != null
               ? overview.delivery_rate_delta * 100
-              : undefined}
+              : 0}
             suffix="%"
             icon={<Percent size={16} />}
             color={overview?.delivery_rate_24h != null && overview.delivery_rate_24h < 0.9 ? 'red' : 'teal'}

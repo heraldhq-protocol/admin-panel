@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   Plus, Search, X, ShieldAlert, ShieldCheck,
-  CheckSquare, Square, ChevronDown, Layers,
+  CheckSquare, Square, Layers,
 } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { toast } from 'sonner'
@@ -16,7 +16,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { truncateAddress, formatTier } from '@/lib/format'
+import { truncateAddress } from '@/lib/format'
 import { useProtocols } from '@/hooks/use-protocols'
 import { useDebounce } from '@/hooks/use-debounce'
 import { QUERY_KEYS } from '@/lib/query-keys'
@@ -355,7 +355,7 @@ export default function ProtocolsPage() {
                           </td>
                           <td className="px-4 py-3">
                             <Badge variant={TIER_VARIANTS[p.tier] as any}>
-                              {TIER_LABELS[p.tier].toUpperCase()}
+                              {(TIER_LABELS[p.tier] ?? 'Unknown').toUpperCase()}
                             </Badge>
                           </td>
                           <td className="px-4 py-3">

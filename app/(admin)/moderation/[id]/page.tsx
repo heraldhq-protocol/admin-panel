@@ -3,8 +3,8 @@
 import * as React from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
-  Shield, ArrowLeft, CheckCircle, XCircle, AlertTriangle,
-  Clock, User, FileText, Bot, ChevronDown,
+  ArrowLeft, CheckCircle, XCircle, AlertTriangle,
+  Clock, User, FileText, Bot,
 } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { toast } from 'sonner'
@@ -12,7 +12,7 @@ import { formatDistanceToNow, format } from 'date-fns'
 import { PageHeader } from '@/components/ui/page-header'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import {
   useModerationQueueItem,
   useApproveModeration,
@@ -98,6 +98,7 @@ export default function ModerationDetailPage() {
   }
 
   const strikeCount = item.protocol_status.strike_count
+  const auditTotalPages = Math.ceil((audit?.total ?? 0) / 20)
 
   return (
     <div className="flex flex-col gap-6">
@@ -110,7 +111,6 @@ export default function ModerationDetailPage() {
       <PageHeader
         title={`${TYPE_LABEL[item.type] ?? item.type} — ${item.protocol_name}`}
         description={`Flagged ${formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}`}
-        icon={Shield}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -118,14 +118,12 @@ export default function ModerationDetailPage() {
         <div className="lg:col-span-2 flex flex-col gap-4">
 
           {/* Flag info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <FileText size={14} />
-                Flag Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <Card padding="md">
+            <div className="flex items-center gap-2 text-sm font-bold text-text-primary mb-4">
+              <FileText size={14} className="text-text-muted" />
+              Flag Details
+            </div>
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-text-muted">Severity</span>
                 <Badge variant={
@@ -148,26 +146,24 @@ export default function ModerationDetailPage() {
                   <span className="text-xs text-text-muted block mb-1">Rules Triggered</span>
                   <div className="flex flex-wrap gap-1.5">
                     {item.rules_triggers.map((r) => (
-                      <code key={r} className="text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20">
+                      <code key={r} className="text-[10px] bg-red/10 text-red px-2 py-0.5 rounded border border-red/20">
                         {r}
                       </code>
                     ))}
                   </div>
                 </div>
               )}
-            </CardContent>
+            </div>
           </Card>
 
           {/* AI scan result */}
           {item.ai_scan_result && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <Bot size={14} />
-                  AI Classification
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
+            <Card padding="md">
+              <div className="flex items-center gap-2 text-sm font-bold text-text-primary mb-4">
+                <Bot size={14} className="text-text-muted" />
+                AI Classification
+              </div>
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-text-muted">Verdict</span>
                   <Badge variant={
@@ -188,57 +184,53 @@ export default function ModerationDetailPage() {
                   <span className="text-xs text-text-muted block mb-1">Reason</span>
                   <p className="text-sm text-text-secondary">{item.ai_scan_result.reason}</p>
                 </div>
-              </CardContent>
+              </div>
             </Card>
           )}
 
           {/* Audit log */}
           {item.protocol_id && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <Clock size={14} />
-                  Protocol Audit Log
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {audit?.data.length === 0 && (
-                  <p className="text-xs text-text-muted">No audit entries.</p>
-                )}
-                <div className="space-y-2">
-                  {audit?.data.map((entry) => (
-                    <div key={entry.id} className="flex items-start gap-3 py-2 border-b border-border last:border-0">
-                      <div className="h-1.5 w-1.5 rounded-full bg-teal mt-1.5 shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <code className="text-[10px] text-teal">{entry.action}</code>
-                          <span className="text-[10px] text-text-muted shrink-0">
-                            {format(new Date(entry.timestamp), 'MMM d, HH:mm')}
-                          </span>
-                        </div>
-                        {entry.new_value && (
-                          <pre className="text-[9px] text-text-muted mt-0.5 truncate">
-                            {JSON.stringify(entry.new_value)}
-                          </pre>
-                        )}
+            <Card padding="md">
+              <div className="flex items-center gap-2 text-sm font-bold text-text-primary mb-4">
+                <Clock size={14} className="text-text-muted" />
+                Protocol Audit Log
+              </div>
+              {audit?.data.length === 0 && (
+                <p className="text-xs text-text-muted">No audit entries.</p>
+              )}
+              <div className="space-y-2">
+                {audit?.data.map((entry) => (
+                  <div key={entry.id} className="flex items-start gap-3 py-2 border-b border-border last:border-0">
+                    <div className="h-1.5 w-1.5 rounded-full bg-teal mt-1.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <code className="text-[10px] text-teal">{entry.action}</code>
+                        <span className="text-[10px] text-text-muted shrink-0">
+                          {format(new Date(entry.timestamp), 'MMM d, HH:mm')}
+                        </span>
                       </div>
+                      {entry.new_value != null && (
+                        <pre className="text-[9px] text-text-muted mt-0.5 truncate">
+                          {JSON.stringify(entry.new_value)}
+                        </pre>
+                      )}
                     </div>
-                  ))}
-                </div>
-                {(audit?.total_pages ?? 0) > 1 && (
-                  <div className="flex justify-between mt-3">
-                    <Button variant="ghost" size="sm" disabled={auditPage === 1} onClick={() => setAuditPage(p => p - 1)}>
-                      Prev
-                    </Button>
-                    <span className="text-xs text-text-muted self-center">
-                      {auditPage} / {audit?.total_pages}
-                    </span>
-                    <Button variant="ghost" size="sm" disabled={auditPage >= (audit?.total_pages ?? 1)} onClick={() => setAuditPage(p => p + 1)}>
-                      Next
-                    </Button>
                   </div>
-                )}
-              </CardContent>
+                ))}
+              </div>
+              {auditTotalPages > 1 && (
+                <div className="flex justify-between mt-3">
+                  <Button variant="ghost" size="sm" disabled={auditPage === 1} onClick={() => setAuditPage(p => p - 1)}>
+                    Prev
+                  </Button>
+                  <span className="text-xs text-text-muted self-center">
+                    {auditPage} / {auditTotalPages}
+                  </span>
+                  <Button variant="ghost" size="sm" disabled={auditPage >= auditTotalPages} onClick={() => setAuditPage(p => p + 1)}>
+                    Next
+                  </Button>
+                </div>
+              )}
             </Card>
           )}
         </div>
@@ -247,14 +239,12 @@ export default function ModerationDetailPage() {
         <div className="flex flex-col gap-4">
 
           {/* Protocol status */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <User size={14} />
-                Protocol Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
+          <Card padding="md">
+            <div className="flex items-center gap-2 text-sm font-bold text-text-primary mb-4">
+              <User size={14} className="text-text-muted" />
+              Protocol Status
+            </div>
+            <div className="space-y-3 text-sm">
               <Row label="Verification" value={
                 <Badge variant={
                   item.protocol_status.verification_status === 'VERIFIED' ? 'developer'
@@ -266,11 +256,11 @@ export default function ModerationDetailPage() {
               } />
               <Row label="Suspended" value={
                 item.protocol_status.is_suspended
-                  ? <span className="text-red-400 font-medium">Yes</span>
-                  : <span className="text-green-500">No</span>
+                  ? <span className="text-red font-medium">Yes</span>
+                  : <span className="text-green">No</span>
               } />
               <Row label="Strikes" value={
-                <span className={strikeCount >= 3 ? 'text-red-400 font-bold' : strikeCount > 0 ? 'text-amber-400' : 'text-text-secondary'}>
+                <span className={strikeCount >= 3 ? 'text-red font-bold' : strikeCount > 0 ? 'text-gold' : 'text-text-secondary'}>
                   {strikeCount} / 4
                 </span>
               } />
@@ -281,19 +271,17 @@ export default function ModerationDetailPage() {
                   </span>
                 } />
               )}
-            </CardContent>
+            </div>
           </Card>
 
           {/* Strike history */}
           {(item.protocol_status.strike_reasons?.length ?? 0) > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <AlertTriangle size={14} />
-                  Strike History
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
+            <Card padding="md">
+              <div className="flex items-center gap-2 text-sm font-bold text-text-primary mb-4">
+                <AlertTriangle size={14} className="text-text-muted" />
+                Strike History
+              </div>
+              <div className="space-y-2">
                 {item.protocol_status.strike_reasons?.map((s, i) => (
                   <div key={i} className="text-xs bg-card-2 rounded p-2 border border-border">
                     <div className="flex justify-between mb-0.5">
@@ -303,19 +291,19 @@ export default function ModerationDetailPage() {
                     <p className="text-text-muted line-clamp-2">{s.reason}</p>
                   </div>
                 ))}
-              </CardContent>
+              </div>
             </Card>
           )}
 
           {/* Resolution status */}
           {isResolved ? (
-            <Card>
-              <CardContent className="pt-4 space-y-2">
+            <Card padding="md">
+              <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   {item.resolution === 'approved'
-                    ? <CheckCircle size={16} className="text-green-500" />
+                    ? <CheckCircle size={16} className="text-green" />
                     : item.resolution === 'struck'
-                    ? <XCircle size={16} className="text-red-400" />
+                    ? <XCircle size={16} className="text-red" />
                     : <XCircle size={16} className="text-text-muted" />}
                   <span className="text-sm font-medium capitalize">{item.resolution}</span>
                 </div>
@@ -323,14 +311,12 @@ export default function ModerationDetailPage() {
                   Resolved {formatDistanceToNow(new Date(item.resolved_at!), { addSuffix: true })}
                   {item.resolved_by ? ` by ${item.resolved_by}` : ''}
                 </p>
-              </CardContent>
+              </div>
             </Card>
           ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-2">
+            <Card padding="md">
+              <p className="text-sm font-bold text-text-primary mb-3">Actions</p>
+              <div className="flex flex-col gap-2">
                 <Button
                   className="w-full"
                   onClick={handleApprove}
@@ -343,7 +329,7 @@ export default function ModerationDetailPage() {
                 {/* Strike dialog */}
                 <Dialog.Root open={strikeOpen} onOpenChange={setStrikeOpen}>
                   <Dialog.Trigger asChild>
-                    <Button variant="outline" className="w-full border-amber-500/30 text-amber-500 hover:bg-amber-500/10">
+                    <Button variant="outline" className="w-full border-gold/30 text-gold hover:bg-gold/10">
                       <AlertTriangle size={14} className="mr-2" />
                       Issue Strike
                     </Button>
@@ -369,7 +355,7 @@ export default function ModerationDetailPage() {
                             onChange={(e) => setStrikeReason(e.target.value)}
                             rows={3}
                             placeholder="Describe the policy violation..."
-                            className="w-full rounded-lg border border-border bg-card-2 px-3 py-2 text-sm text-text-primary placeholder:text-text-muted resize-none focus:outline-none focus:ring-1 focus:ring-teal"
+                            className="w-full rounded-lg border border-border bg-card-2 px-3 py-2 text-sm text-text-primary placeholder:text-text-muted resize-none focus:outline-none focus:ring-2 focus:ring-teal/50"
                           />
                         </div>
 
@@ -392,7 +378,7 @@ export default function ModerationDetailPage() {
                             Cancel
                           </Button>
                           <Button
-                            className="flex-1 border-amber-500/30 text-amber-500 hover:bg-amber-500/10"
+                            className="flex-1 border-gold/30 text-gold hover:bg-gold/10"
                             variant="outline"
                             onClick={handleStrike}
                             disabled={strike.isPending || strikeReason.trim().length < 10}
@@ -414,7 +400,7 @@ export default function ModerationDetailPage() {
                   <XCircle size={14} className="mr-2" />
                   Dismiss (False Positive)
                 </Button>
-              </CardContent>
+              </div>
             </Card>
           )}
         </div>

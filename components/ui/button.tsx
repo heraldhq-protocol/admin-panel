@@ -6,18 +6,18 @@ import { Loader2 } from 'lucide-react'
 import { cn } from '../../lib/cn'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-border disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/50 focus-visible:ring-offset-1 focus-visible:ring-offset-bg disabled:pointer-events-none disabled:opacity-40 active:scale-[0.97] select-none',
   {
     variants: {
       variant: {
         default:
-          'bg-teal text-white hover:bg-teal-2 shadow-sm',
+          'bg-teal text-white hover:bg-teal/90 shadow-sm shadow-teal/20',
         secondary:
-          'bg-card-2 text-text-primary border border-border hover:bg-border',
+          'bg-card-2 text-text-primary border border-border hover:bg-card hover:border-border-2',
         ghost:
           'hover:bg-card-2 text-text-secondary hover:text-text-primary',
         danger:
-          'bg-admin-bg text-admin border border-admin/20 hover:bg-admin hover:text-white',
+          'bg-red/10 text-red border border-red/20 hover:bg-red hover:text-white hover:border-red',
         outline:
           'border border-border bg-transparent hover:bg-card-2 text-text-secondary hover:text-text-primary',
       },

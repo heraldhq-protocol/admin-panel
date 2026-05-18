@@ -19,15 +19,15 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           className="text-sm font-medium text-text-secondary"
         >
           {label}
-          {props.required && <span className="text-admin ml-1">*</span>}
+          {props.required && <span className="text-red ml-1" aria-hidden="true">*</span>}
         </label>
         <input
           type={type}
           id={inputId}
           className={cn(
-            'flex h-10 w-full rounded-md border border-border bg-card px-3 py-2 text-sm ring-offset-bg file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-teal disabled:cursor-not-allowed disabled:opacity-50 transition-colors',
-            error && 'border-admin focus-visible:ring-admin',
-            mono && 'font-mono text-xs',
+            'flex h-10 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/50 focus-visible:ring-offset-1 focus-visible:ring-offset-bg focus-visible:border-teal disabled:cursor-not-allowed disabled:opacity-40 transition-colors',
+            error && 'border-red focus-visible:ring-red/50 focus-visible:border-red',
+            mono && 'font-mono tracking-widest',
             className
           )}
           ref={ref}
@@ -37,8 +37,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         />
         {error && (
           <p
+            role="alert"
             id={`${inputId}-error`}
-            className="text-xs font-medium text-admin mt-0.5"
+            className="text-xs font-medium text-red mt-0.5"
           >
             {error}
           </p>

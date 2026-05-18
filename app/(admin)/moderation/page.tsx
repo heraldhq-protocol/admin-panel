@@ -2,8 +2,7 @@
 'use client'
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Filter, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
-import { toast } from 'sonner'
+import { Filter, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
 import { PageHeader } from '@/components/ui/page-header'
 import { DataTable } from '@/components/ui/data-table'
 import { Badge } from '@/components/ui/badge'
@@ -131,7 +130,6 @@ export default function ModerationQueuePage() {
       <PageHeader
         title="Moderation Queue"
         description="Review flagged protocols and content. Approve, strike, or dismiss each item."
-        icon={Shield}
       />
 
       {/* Filters bar */}
@@ -159,7 +157,7 @@ export default function ModerationQueuePage() {
             variant={filters.severity === s ? 'default' : 'outline'}
             size="sm"
             onClick={() => {
-              setFilters(f => ({ ...f, severity: f.severity === s ? undefined : s }))
+              setFilters(f => ({ ...f, severity: f.severity === s ? undefined : s } as ModerationFilters))
               setPage(1)
             }}
           >
@@ -171,7 +169,7 @@ export default function ModerationQueuePage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setFilters(f => ({ resolved: f.resolved }))}
+            onClick={() => setFilters({ resolved: filters.resolved ?? false })}
           >
             <Filter size={12} className="mr-1" /> Clear filters
           </Button>
@@ -183,14 +181,18 @@ export default function ModerationQueuePage() {
         data={data?.data ?? []}
         isLoading={isLoading}
         onRowClick={(row) => router.push(`/moderation/${row.id}`)}
-        pagination={{
-          page,
-          total: data?.total ?? 0,
-          perPage: 20,
-          onPageChange: setPage,
-        }}
         emptyMessage={filters.resolved ? 'No resolved items.' : 'No pending items — queue is clear.'}
       />
+
+      {(data?.total ?? 0) > 20 && (
+        <div className="flex items-center justify-between text-xs text-text-muted">
+          <span>{data?.total ?? 0} total</span>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Previous</Button>
+            <Button variant="outline" size="sm" disabled={!data?.has_more} onClick={() => setPage(p => p + 1)}>Next</Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

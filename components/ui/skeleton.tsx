@@ -7,6 +7,7 @@ interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
 function Skeleton({ className, variant = 'line', ...props }: SkeletonProps) {
   return (
     <div
+      aria-hidden="true"
       className={cn(
         'animate-pulse bg-card-2 rounded-md',
         variant === 'line' && 'w-full h-4',

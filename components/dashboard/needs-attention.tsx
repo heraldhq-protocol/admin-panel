@@ -41,7 +41,7 @@ export function NeedsAttention() {
   const { data: receipts } = useReceiptQueue()
   const { data: moderation } = useModerationQueue()
 
-  const failedReceiptsCount = receipts?.data?.length ?? 0
+  const failedReceiptsCount = receipts?.length ?? 0
   const pendingModerationCount = moderation?.total ?? 0
   const openIncidentsCount = overview?.open_incidents ?? 0
 
