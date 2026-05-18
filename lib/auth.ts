@@ -47,8 +47,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.code) return null
 
-        // Success simulation if code is 123456
-        if (credentials.code === '123456') {
+        // Dev-only bypass — never reaches production (next.config.ts enforces TOTP_SECRET)
+        if (process.env.NODE_ENV === 'development' && credentials.code === '123456') {
           return {
             id: 'admin_02',
             name: 'Sarah Chen',
@@ -56,6 +56,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             auth_method: 'email-totp' as AuthMethod,
           }
         }
+
+        // Production: validate against real TOTP secret
+        // Replace with your TOTP library (e.g. otplib) when wiring production auth
+        if (process.env.NODE_ENV === 'production') {
+          // TODO: verifyTotp(credentials.code, process.env.TOTP_SECRET!)
+          return null
+        }
+
         return null
       },
     }),

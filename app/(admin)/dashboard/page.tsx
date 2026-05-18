@@ -16,6 +16,7 @@ import {
 import { Zap, ShieldAlert, Users, Activity, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { NeedsAttention } from '@/components/dashboard/needs-attention'
 import { PageHeader } from '@/components/ui/page-header'
 import { StatCard } from '@/components/ui/stat-card'
 import { Card } from '@/components/ui/card'
@@ -47,31 +48,37 @@ export default function DashboardPage() {
         actions={<Badge variant="active" className="h-6">Systems Operational</Badge>}
       />
 
+      <NeedsAttention />
+
       {/* KPI Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Total Protocols"
-          value={metricsLoading ? '—' : (metrics?.activeProtocols ?? '—')}
+          isLoading={metricsLoading}
+          value={metrics?.activeProtocols ?? 0}
           delta={0}
           trend="neutral"
         />
         <StatCard
           label="Sends Today"
-          value={overviewLoading ? '—' : (overview ? `${(overview.sends_today / 1_000_000).toFixed(2)}M` : '—')}
+          isLoading={overviewLoading}
+          value={overview ? `${(overview.sends_today / 1_000_000).toFixed(2)}M` : 0}
           delta={overview?.sends_today_delta ?? 0}
           trend="up"
           suffix="sends"
         />
         <StatCard
           label="Delivery Rate"
-          value={overviewLoading ? '—' : (overview?.delivery_rate_24h ?? '—')}
-          delta={overview?.delivery_rate_delta ?? 0}
-          trend={overview && overview.delivery_rate_delta >= 0 ? 'up' : 'neutral'}
+          isLoading={overviewLoading}
+          value={overview?.delivery_rate_24h != null ? `${(overview.delivery_rate_24h * 100).toFixed(1)}` : 0}
+          delta={overview?.delivery_rate_delta != null ? `${(overview.delivery_rate_delta * 100).toFixed(1)}` : 0}
+          trend={overview && overview.delivery_rate_delta >= 0 ? 'up' : 'down'}
           suffix="% 24h"
         />
         <StatCard
           label="Open Incidents"
-          value={overviewLoading ? '—' : (overview?.open_incidents ?? '—')}
+          isLoading={overviewLoading}
+          value={overview?.open_incidents ?? 0}
           delta={0}
           trend="neutral"
         />
@@ -81,19 +88,22 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
           label="Active Protocols"
-          value={metricsLoading ? '—' : (metrics?.activeProtocols ?? '—')}
+          isLoading={metricsLoading}
+          value={metrics?.activeProtocols ?? 0}
           delta={0}
           trend="neutral"
         />
         <StatCard
           label="Registered Webhooks"
-          value={metricsLoading ? '—' : (metrics?.totalWebhooks ?? '—')}
+          isLoading={metricsLoading}
+          value={metrics?.totalWebhooks ?? 0}
           delta={0}
           trend="neutral"
         />
         <StatCard
           label="All-Time Delivered"
-          value={metricsLoading ? '—' : (metrics?.notificationsSent != null ? `${(metrics.notificationsSent / 1_000_000).toFixed(2)}M` : '—')}
+          isLoading={metricsLoading}
+          value={metrics?.notificationsSent != null ? `${(metrics.notificationsSent / 1_000_000).toFixed(2)}M` : 0}
           delta={0}
           trend="neutral"
         />
@@ -213,8 +223,11 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card
           padding="md"
-          className="group hover:border-teal/50 transition-colors cursor-pointer border-dashed"
+          className="group hover:border-teal/50 transition-colors cursor-pointer border-dashed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/50"
+          role="button"
+          tabIndex={0}
           onClick={() => toast.info('Instant Broadcast coming soon.')}
+          onKeyDown={(e) => e.key === 'Enter' || e.key === ' ' ? toast.info('Instant Broadcast coming soon.') : undefined}
         >
           <div className="flex items-center gap-4">
             <div className="h-10 w-10 rounded-xl bg-teal/10 flex items-center justify-center text-teal">
@@ -230,8 +243,11 @@ export default function DashboardPage() {
 
         <Card
           padding="md"
-          className="group hover:border-admin/50 transition-colors cursor-pointer border-dashed"
+          className="group hover:border-admin/50 transition-colors cursor-pointer border-dashed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-admin/50"
+          role="button"
+          tabIndex={0}
           onClick={() => router.push('/incidents')}
+          onKeyDown={(e) => e.key === 'Enter' || e.key === ' ' ? router.push('/incidents') : undefined}
         >
           <div className="flex items-center gap-4">
             <div className="h-10 w-10 rounded-xl bg-admin-bg flex items-center justify-center text-admin">
@@ -247,8 +263,11 @@ export default function DashboardPage() {
 
         <Card
           padding="md"
-          className="group hover:border-purple/50 transition-colors cursor-pointer border-dashed"
+          className="group hover:border-purple/50 transition-colors cursor-pointer border-dashed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple/50"
+          role="button"
+          tabIndex={0}
           onClick={() => router.push('/team')}
+          onKeyDown={(e) => e.key === 'Enter' || e.key === ' ' ? router.push('/team') : undefined}
         >
           <div className="flex items-center gap-4">
             <div className="h-10 w-10 rounded-xl bg-purple/10 flex items-center justify-center text-purple">

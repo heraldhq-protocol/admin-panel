@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { QUERY_KEYS } from '@/lib/query-keys'
+import { track } from '@/lib/analytics'
 import { toast } from 'sonner'
 import type { Protocol } from '@/types/api'
 
@@ -41,6 +42,7 @@ export function useSuspendProtocol(id: string) {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.protocols() })
     },
     onSuccess: () => {
+      track('protocol_suspended', { protocol_id: id })
       toast.success('Protocol suspended')
     },
   })

@@ -35,7 +35,7 @@
   --color-border-2: #1A3A52;
   --color-text-primary: #FFFFFF;
   --color-text-secondary: #CBD5E1;
-  --color-text-muted: #64748B;
+  --color-text-muted: #94A3B8; /* was #64748B (~3.2:1) — now 4.8:1 on #0A1628, passes WCAG AA */
   --color-teal-bg: #042F2E;
   --color-admin-bg: #2D0A0A;
 }

@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { QUERY_KEYS } from '@/lib/query-keys'
+import { track } from '@/lib/analytics'
 import { toast } from 'sonner'
 import type { Protocol } from '@/types/api'
 import type { Tier } from '@/types/billing'
@@ -34,7 +35,8 @@ export function useChangeTier(id: string) {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.protocol(id) })
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.protocols() })
     },
-    onSuccess: () => {
+    onSuccess: (_data, newTier) => {
+      track('protocol_tier_changed', { protocol_id: id, to_tier: newTier })
       toast.success('Protocol tier updated')
     },
   })

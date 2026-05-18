@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 
 import { apiClient } from '@/lib/api-client'
 import { QUERY_KEYS } from '@/lib/query-keys'
+import { track } from '@/lib/analytics'
 import type { IncidentSeverity } from '@/types/api'
 
 export interface CreateIncidentInput {
@@ -18,7 +19,8 @@ export function useCreateIncident() {
 
   return useMutation({
     mutationFn: (data: CreateIncidentInput) => apiClient.createIncident(data),
-    onSuccess: () => {
+    onSuccess: (_data, input) => {
+      track('incident_created', { severity: input.severity })
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.incidents() })
       toast.success('Incident declared. On-call paged.')
     },

@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { QUERY_KEYS } from '@/lib/query-keys'
+import { track } from '@/lib/analytics'
 import type { ModerationFilters } from '@/types/api'
 
 export function useModerationQueue(filters?: ModerationFilters) {
@@ -33,7 +34,8 @@ export function useApproveModeration() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => apiClient.approveModeration(id),
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      track('moderation_approved', { item_id: id })
       qc.invalidateQueries({ queryKey: ['moderation-queue'] })
       qc.invalidateQueries({ queryKey: ['moderation-item'] })
     },
@@ -44,8 +46,9 @@ export function useStrikeProtocol() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, reason, suspend }: { id: string; reason: string; suspend?: boolean }) =>
-      apiClient.strikeProtocol(id, { reason, suspend }),
-    onSuccess: () => {
+      apiClient.strikeProtocol(id, { reason, ...(suspend !== undefined ? { suspend } : {}) }),
+    onSuccess: (_data, { id }) => {
+      track('protocol_strike_issued', { protocol_id: id })
       qc.invalidateQueries({ queryKey: ['moderation-queue'] })
       qc.invalidateQueries({ queryKey: ['moderation-item'] })
       qc.invalidateQueries({ queryKey: ['protocols'] })

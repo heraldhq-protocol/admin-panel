@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../lib/api-client'
 import { QUERY_KEYS } from '../lib/query-keys'
+import { track } from '../lib/analytics'
 import type { TemplateFilters } from '../types/api'
 
 export function usePendingTemplates(filters?: TemplateFilters) {
@@ -16,7 +17,8 @@ export function useApproveTemplate() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => apiClient.approveTemplate(id),
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      track('template_approved', { template_id: id })
       queryClient.invalidateQueries({ queryKey: ['pending-templates'] })
     },
   })

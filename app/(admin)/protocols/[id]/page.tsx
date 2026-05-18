@@ -15,6 +15,9 @@ import {
   ExternalLink,
   Save,
   X,
+  Bell,
+  Webhook,
+  StickyNote,
 } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 
@@ -26,6 +29,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { apiClient } from '@/lib/api-client'
 import { QUERY_KEYS } from '@/lib/query-keys'
 import { formatRelativeTime, formatTier } from '@/lib/format'
+import { WalletAddress } from '@/components/ui/wallet-address'
+import { computeHealthScore, healthLabel, healthVariant } from '@/lib/protocol-health'
 import { useSuspendProtocol } from '@/hooks/use-suspend-protocol'
 import { useUnsuspendProtocol } from '@/hooks/use-unsuspend-protocol'
 import { useChangeTier } from '@/hooks/use-change-tier'
@@ -35,7 +40,7 @@ import { cn } from '@/lib/cn'
 import type { Tier } from '@/types/billing'
 import type { AuditLogEntry } from '@/types/api'
 
-type Tab = 'overview' | 'audit_log'
+type Tab = 'overview' | 'notifications' | 'webhooks' | 'billing' | 'notes' | 'audit_log'
 
 // ─── Action label formatting ──────────────────────────────────────────────────
 
@@ -125,26 +130,31 @@ export default function ProtocolDetailsPage() {
 
       <PageHeader
         title={protocol.name}
-        description={
-          <span className="font-mono text-sm text-text-muted">{protocol.protocol_pubkey}</span>
-        }
+        description={<WalletAddress address={protocol.protocol_pubkey} truncate={false} className="text-text-muted" />}
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Badge variant={protocol.is_active ? 'active' : 'suspended'}>
               {protocol.is_active ? 'ACTIVE' : 'SUSPENDED'}
             </Badge>
             <Badge variant={protocol.tier === 3 ? 'enterprise' : protocol.tier === 2 ? 'scale' : 'growth'}>
               {formatTier(protocol.tier).toUpperCase()}
             </Badge>
+            <Badge variant={healthVariant(computeHealthScore(protocol))}>
+              {healthLabel(computeHealthScore(protocol))}
+            </Badge>
           </div>
         }
       />
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-border">
+      <div className="flex gap-1 border-b border-border overflow-x-auto">
         {([
-          { id: 'overview',   label: 'Overview',   icon: CreditCard },
-          { id: 'audit_log',  label: 'Audit Log',  icon: History },
+          { id: 'overview',       label: 'Overview',       icon: CreditCard },
+          { id: 'notifications',  label: 'Notifications',  icon: Bell },
+          { id: 'webhooks',       label: 'Webhooks',       icon: Webhook },
+          { id: 'billing',        label: 'Billing',        icon: Settings },
+          { id: 'notes',          label: 'Notes',          icon: StickyNote },
+          { id: 'audit_log',      label: 'Audit Log',      icon: History },
         ] as { id: Tab; label: string; icon: React.ElementType }[]).map((t) => (
           <button
             key={t.id}
@@ -217,6 +227,139 @@ export default function ProtocolDetailsPage() {
               </div>
             </>
           )}
+        </Card>
+      )}
+
+      {/* ── Notifications Tab ────────────────────────────────────────────────── */}
+      {activeTab === 'notifications' && (
+        <Card padding="lg" className="space-y-4">
+          <h3 className="font-syne text-lg font-bold flex items-center gap-2">
+            <Bell className="h-5 w-5 text-teal" />
+            Recent Notifications
+          </h3>
+          <p className="text-sm text-text-muted">
+            Notification history for <strong>{protocol.name}</strong> is available in the{' '}
+            <button
+              className="text-teal hover:underline"
+              onClick={() => router.push(`/notifications?protocol_id=${protocol.id}`)}
+            >
+              Notifications queue
+            </button>{' '}
+            filtered by this protocol.
+          </p>
+          <button
+            className="inline-flex items-center gap-2 text-sm font-medium text-teal hover:underline"
+            onClick={() => router.push(`/notifications?protocol_id=${protocol.id}`)}
+          >
+            View all notifications
+            <ExternalLink size={14} />
+          </button>
+        </Card>
+      )}
+
+      {/* ── Webhooks Tab ─────────────────────────────────────────────────────── */}
+      {activeTab === 'webhooks' && (
+        <Card padding="lg" className="space-y-4">
+          <h3 className="font-syne text-lg font-bold flex items-center gap-2">
+            <Webhook className="h-5 w-5 text-teal" />
+            Webhook Delivery Log
+          </h3>
+          <div className="rounded-lg border border-border bg-card-2 p-8 text-center">
+            <p className="text-sm text-text-muted">
+              Webhook delivery logs will appear here once the webhook log endpoint is wired.
+            </p>
+            <p className="text-xs text-text-muted mt-1">
+              Backend endpoint: <code className="font-mono">GET /v1/admin/protocols/:id/webhook-logs</code>
+            </p>
+          </div>
+        </Card>
+      )}
+
+      {/* ── Billing Tab ──────────────────────────────────────────────────────── */}
+      {activeTab === 'billing' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card padding="lg" className="space-y-6">
+            <h3 className="font-syne text-lg font-bold flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-teal" />
+              Subscription & Usage
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-xs text-text-muted font-bold uppercase">Current Tier</p>
+                <p className="text-xl font-bold">{formatTier(protocol.tier)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-text-muted font-bold uppercase">Period Reset</p>
+                <p className="text-base font-bold">{new Date(protocol.period_reset_at).toLocaleDateString()}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-text-muted font-bold uppercase">Sends Used</p>
+                <p className={`text-xl font-bold ${protocol.sends_this_period > protocol.sends_limit ? 'text-red' : ''}`}>
+                  {protocol.sends_this_period.toLocaleString()}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-text-muted font-bold uppercase">Monthly Limit</p>
+                <p className="text-xl font-bold">{protocol.sends_limit.toLocaleString()}</p>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs text-text-muted">
+                <span>Usage</span>
+                <span>{Math.min(Math.round((protocol.sends_this_period / protocol.sends_limit) * 100), 100)}%</span>
+              </div>
+              <div className="w-full h-2 bg-card-2 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${protocol.sends_this_period > protocol.sends_limit ? 'bg-red' : 'bg-teal'}`}
+                  style={{ width: `${Math.min((protocol.sends_this_period / protocol.sends_limit) * 100, 100)}%` }}
+                />
+              </div>
+              {protocol.sends_this_period > protocol.sends_limit && (
+                <p className="text-xs text-red font-medium">Over quota — overage billing active</p>
+              )}
+            </div>
+          </Card>
+
+          <Card padding="lg" className="space-y-4">
+            <h3 className="font-syne text-base font-bold">Stripe</h3>
+            <div className="space-y-3 text-sm">
+              <div>
+                <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Customer ID</p>
+                <p className="flex items-center gap-1 font-mono text-xs mt-0.5">
+                  {protocol.stripe_customer_id ?? 'N/A'}
+                  {protocol.stripe_customer_id && <ExternalLink size={12} className="text-text-muted" />}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Registered</p>
+                <p>{formatRelativeTime(protocol.created_at)}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* ── Notes Tab ────────────────────────────────────────────────────────── */}
+      {activeTab === 'notes' && (
+        <Card padding="lg" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-syne text-lg font-bold flex items-center gap-2">
+              <StickyNote className="h-5 w-5 text-teal" />
+              Admin Notes
+            </h3>
+            {updateNotes.isPending && (
+              <span className="text-xs text-text-muted flex items-center gap-1">
+                <Save size={12} className="animate-pulse" /> Saving…
+              </span>
+            )}
+          </div>
+          <textarea
+            className="w-full h-[200px] bg-bg rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-teal border border-border resize-none"
+            placeholder="Internal notes — never shown to the protocol. Suspension reasons, billing context, escalation history…"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+          <p className="text-[10px] text-text-muted">Saved automatically. Logged with your admin ID.</p>
         </Card>
       )}
 

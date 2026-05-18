@@ -34,7 +34,7 @@ export function DataTable<TData, TValue>({
 
   if (isLoading) {
     return (
-      <div className="rounded-md border border-border">
+      <div className="rounded-md border border-border" role="status" aria-label="Loading data">
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
@@ -53,12 +53,13 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="rounded-md border border-border bg-card overflow-hidden">
-      <table className="w-full text-sm text-left">
+      <div className="overflow-x-auto">
+      <table className="w-full min-w-[640px] text-sm text-left">
         <thead className="bg-card-2 border-b border-border text-text-secondary font-medium">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <th key={header.id} className="px-4 py-3">
+                <th key={header.id} scope="col" className="px-4 py-3 text-xs font-bold uppercase tracking-wider">
                   {header.isPlaceholder
                     ? null
                     : flexRender(
@@ -76,9 +77,12 @@ export function DataTable<TData, TValue>({
               key={row.id}
               className={cn(
                 'hover:bg-card-2 transition-colors',
-                onRowClick && 'cursor-pointer'
+                onRowClick && 'cursor-pointer focus-visible:outline-none focus-visible:bg-card-2'
               )}
               onClick={() => onRowClick?.(row.original)}
+              onKeyDown={onRowClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRowClick(row.original) } } : undefined}
+              tabIndex={onRowClick ? 0 : undefined}
+              role={onRowClick ? 'button' : undefined}
             >
               {row.getVisibleCells().map((cell) => (
                 <td key={cell.id} className="px-4 py-3 whitespace-nowrap">
@@ -89,6 +93,7 @@ export function DataTable<TData, TValue>({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }

@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api-client'
 import { QUERY_KEYS } from '@/lib/query-keys'
+import { track } from '@/lib/analytics'
 import { toast } from 'sonner'
 
 export function useRetryReceipt() {
@@ -9,7 +10,8 @@ export function useRetryReceipt() {
 
   return useMutation({
     mutationFn: (id: string) => apiClient.retryReceipt(id),
-    onSuccess: () => {
+    onSuccess: (_data, receiptId) => {
+      track('receipt_retry_triggered', { receipt_id: receiptId })
       toast.success('Receipt queued for retry')
     },
     onError: () => {

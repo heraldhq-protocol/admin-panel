@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import * as Dialog from '@radix-ui/react-dialog'
 import { SidebarNav } from './sidebar'
 import { Topnav } from './topnav'
+import { CommandPalette } from '@/components/command-palette'
 import { useUiStore } from '@/lib/stores/ui-store'
 
 interface AdminShellProps {
@@ -14,11 +15,24 @@ interface AdminShellProps {
 export function AdminShell({ children }: AdminShellProps) {
   const { mobileSidebarOpen, setMobileSidebarOpen } = useUiStore()
   const pathname = usePathname()
+  const [paletteOpen, setPaletteOpen] = useState(false)
 
   // Auto-close mobile sidebar on navigation
   useEffect(() => {
     setMobileSidebarOpen(false)
   }, [pathname, setMobileSidebarOpen])
+
+  // Cmd+K / Ctrl+K global shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setPaletteOpen((v) => !v)
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   return (
     <div className="flex min-h-screen bg-bg">
@@ -40,11 +54,13 @@ export function AdminShell({ children }: AdminShellProps) {
       </Dialog.Root>
 
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Topnav />
+        <Topnav onOpenPalette={() => setPaletteOpen(true)} />
         <main className="flex-1 overflow-auto p-4 md:p-6">
           {children}
         </main>
       </div>
+
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   )
 }
