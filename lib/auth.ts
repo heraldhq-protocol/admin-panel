@@ -1,6 +1,13 @@
-import NextAuth from 'next-auth'
+import NextAuth, { CredentialsSignin } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import type { AdminRole, AuthMethod } from '../types'
+
+class BackendAuthError extends CredentialsSignin {
+  constructor(msg: string) {
+    super()
+    this.code = msg
+  }
+}
 
 const ADMIN_ROLES = ['super_admin', 'admin', 'viewer'] as const
 const AUTH_METHODS = ['wallet', 'email-totp'] as const
@@ -108,8 +115,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         } catch (err) {
           const msg = (err as Error).message
           console.error('[auth] wallet login failed:', msg, '| backend:', BACKEND_URL)
-          // Propagate the backend error so the UI can show it
-          throw new Error(msg)
+          throw new BackendAuthError(msg)
         }
       },
     }),
@@ -158,7 +164,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         } catch (err) {
           const msg = (err as Error).message
           console.error('[auth] email-totp login failed:', msg, '| backend:', BACKEND_URL)
-          throw new Error(msg)
+          throw new BackendAuthError(msg)
         }
       },
     }),

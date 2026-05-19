@@ -60,7 +60,7 @@ export default function LoginPage() {
         if (result?.error) {
           setError(result.error === 'CredentialsSignin'
             ? 'Wallet not authorized. Contact a super_admin to add your wallet.'
-            : result.error)
+            : (result.error ?? 'Wallet login failed'))
         } else {
           router.push('/dashboard')
         }
