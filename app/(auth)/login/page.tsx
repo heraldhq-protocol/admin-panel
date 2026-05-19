@@ -58,7 +58,9 @@ export default function LoginPage() {
           redirect: false,
         })
         if (result?.error) {
-          setError('Wallet not authorized. Contact a super_admin to add your wallet.')
+          setError(result.error === 'CredentialsSignin'
+            ? 'Wallet not authorized. Contact a super_admin to add your wallet.'
+            : result.error)
         } else {
           router.push('/dashboard')
         }
@@ -95,7 +97,9 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        setError('Invalid email or code')
+        setError(result.error === 'CredentialsSignin'
+          ? 'Invalid email or TOTP code'
+          : result.error)
       } else {
         router.push('/dashboard')
       }

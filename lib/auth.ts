@@ -106,8 +106,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             backend_token_exp: decodeTokenExp(token),
           }
         } catch (err) {
-          console.error('[auth] wallet login failed:', (err as Error).message)
-          return null
+          const msg = (err as Error).message
+          console.error('[auth] wallet login failed:', msg, '| backend:', BACKEND_URL)
+          // Propagate the backend error so the UI can show it
+          throw new Error(msg)
         }
       },
     }),
@@ -154,8 +156,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             backend_token_exp: decodeTokenExp(token),
           }
         } catch (err) {
-          console.error('[auth] email-totp login failed:', (err as Error).message)
-          return null
+          const msg = (err as Error).message
+          console.error('[auth] email-totp login failed:', msg, '| backend:', BACKEND_URL)
+          throw new Error(msg)
         }
       },
     }),
