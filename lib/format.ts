@@ -72,63 +72,95 @@ export function formatSeverity(sev: IncidentSeverity): string {
 }
 
 const ACTIVITY_LABELS: Record<string, string> = {
-  // Protocol CRUD
+  // ── Protocols ────────────────────────────────────────────────────────────
   'post.protocols': 'Protocol registered',
   'patch.protocols': 'Protocol updated',
   'put.protocols': 'Protocol updated',
   'delete.protocols': 'Protocol deleted',
 
-  // API keys
+  // ── API keys ─────────────────────────────────────────────────────────────
   'post.api-keys': 'API key created',
   'patch.api-keys': 'API key updated',
   'put.api-keys': 'API key updated',
   'delete.api-keys': 'API key deleted',
   'post.apikeys': 'API key created',
+  'patch.apikeys': 'API key updated',
   'delete.apikeys': 'API key deleted',
 
-  // Protocol assets
+  // ── Protocol assets (explicit service writes) ─────────────────────────
   'protocol_asset.create': 'Protocol asset added',
   'protocol_asset.delete': 'Protocol asset removed',
   'protocol_asset.update': 'Protocol asset updated',
 
-  // Sandbox / settings
+  // ── Sandbox / settings (explicit service writes) ───────────────────────
   'protocol.sandbox_settings.update': 'Sandbox settings updated',
   'protocol.settings.update': 'Protocol settings updated',
 
-  // Notifications
+  // ── Billing ───────────────────────────────────────────────────────────
+  'post.billing': 'Billing event',
+  'patch.billing': 'Billing updated',
+  'put.billing': 'Billing updated',
+  'delete.billing': 'Billing record removed',
+  'post.subscriptions': 'Subscription created',
+  'patch.subscriptions': 'Subscription updated',
+  'delete.subscriptions': 'Subscription cancelled',
+  'post.overage': 'Overage charge created',
+  'patch.overage': 'Overage charge updated',
+
+  // ── Notifications ────────────────────────────────────────────────────
   'post.notifications': 'Notification sent',
   'patch.notifications': 'Notification updated',
   'delete.notifications': 'Notification deleted',
 
-  // Moderation
+  // ── Incidents ────────────────────────────────────────────────────────
+  'post.incidents': 'Incident opened',
+  'patch.incidents': 'Incident updated',
+  'put.incidents': 'Incident updated',
+  'delete.incidents': 'Incident closed',
+  'incident.resolve': 'Incident resolved',
+
+  // ── Templates ────────────────────────────────────────────────────────
+  'post.templates': 'Template created',
+  'patch.templates': 'Template updated',
+  'delete.templates': 'Template deleted',
+
+  // ── Moderation ───────────────────────────────────────────────────────
+  'post.moderation': 'Moderation action taken',
+  'patch.moderation': 'Moderation item updated',
   'protocol.suspend': 'Protocol suspended',
   'protocol.unsuspend': 'Protocol unsuspended',
   'protocol.reactivate': 'Protocol reactivated',
   'protocol.strike': 'Strike issued',
   'protocol.verify': 'Protocol verified',
+  'protocol.verify_rejected': 'Verification rejected',
+  'protocol.verification_rejected': 'Verification rejected',
   'protocol.tier_change': 'Tier changed',
   'tier.change': 'Tier changed',
 
-  // Incidents
-  'post.incidents': 'Incident created',
-  'patch.incidents': 'Incident updated',
-  'delete.incidents': 'Incident deleted',
-  'incident.resolve': 'Incident resolved',
+  // ── Receipts ─────────────────────────────────────────────────────────
+  'post.receipts': 'Receipt retry triggered',
+  'patch.receipts': 'Receipt updated',
 
-  // Templates
-  'post.templates': 'Template created',
-  'patch.templates': 'Template updated',
-  'delete.templates': 'Template deleted',
+  // ── Reports / abuse ──────────────────────────────────────────────────
+  'post.reports': 'Abuse report filed',
+  'patch.reports': 'Abuse report updated',
+  'delete.reports': 'Abuse report dismissed',
 
-  // Team / admins
+  // ── Design partners ──────────────────────────────────────────────────
+  'post.design-partners': 'Design partner added',
+  'patch.design-partners': 'Design partner updated',
+  'delete.design-partners': 'Design partner removed',
+
+  // ── Team / admins ────────────────────────────────────────────────────
+  'post.team': 'Team member invited',
+  'patch.team': 'Team member updated',
+  'delete.team': 'Team member removed',
   'post.admins': 'Admin added',
   'patch.admins': 'Admin updated',
   'delete.admins': 'Admin removed',
 
-  // Design partners
-  'post.design-partners': 'Design partner added',
-  'patch.design-partners': 'Design partner updated',
-  'delete.design-partners': 'Design partner removed',
+  // ── Auth ─────────────────────────────────────────────────────────────
+  'post.admin-auth': 'Admin signed in',
 }
 
 /**

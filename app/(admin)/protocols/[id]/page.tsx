@@ -18,6 +18,7 @@ import {
   Bell,
   Webhook,
   StickyNote,
+  Trash2,
 } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 
@@ -37,6 +38,7 @@ import { useChangeTier } from '@/hooks/use-change-tier'
 import { useUpdateProtocolNotes } from '@/hooks/use-update-protocol-notes'
 import { useVerifyProtocol } from '@/hooks/use-verify-protocol'
 import { useRejectVerification } from '@/hooks/use-reject-verification'
+import { useDeleteProtocol } from '@/hooks/use-delete-protocol'
 import { useDebounce } from '@/hooks/use-debounce'
 import { cn } from '@/lib/cn'
 import type { Tier } from '@/types/billing'
@@ -78,6 +80,7 @@ export default function ProtocolDetailsPage() {
 
   const verify = useVerifyProtocol(id)
   const rejectVerification = useRejectVerification(id)
+  const deleteProtocol = useDeleteProtocol(id)
 
   const [activeTab, setActiveTab] = React.useState<Tab>('overview')
   const [suspendOpen, setSuspendOpen] = React.useState(false)
@@ -86,6 +89,8 @@ export default function ProtocolDetailsPage() {
   const [verifyNote, setVerifyNote] = React.useState('')
   const [rejectOpen, setRejectOpen] = React.useState(false)
   const [rejectNote, setRejectNote] = React.useState('')
+  const [deleteOpen, setDeleteOpen] = React.useState(false)
+  const [deleteConfirmName, setDeleteConfirmName] = React.useState('')
   const [notes, setNotes] = React.useState('')
   const debouncedNotes = useDebounce(notes, 1000)
 
@@ -629,6 +634,60 @@ export default function ProtocolDetailsPage() {
                   </Dialog.Root>
                 </div>
               )}
+            </div>
+
+            {/* Danger zone — delete */}
+            <div className="pt-2 space-y-2 border-t border-red/20">
+              <p className="text-[10px] text-red/70 uppercase font-bold tracking-wider">Danger Zone</p>
+              <Dialog.Root open={deleteOpen} onOpenChange={(o) => { setDeleteOpen(o); if (!o) setDeleteConfirmName('') }}>
+                <Dialog.Trigger asChild>
+                  <Button variant="danger" size="sm" className="w-full">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Protocol
+                  </Button>
+                </Dialog.Trigger>
+                <Dialog.Portal>
+                  <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-in fade-in" />
+                  <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-md bg-bg-elevated border border-red/30 rounded-xl shadow-lg z-50 p-6 animate-in zoom-in-95 duration-200 focus:outline-none">
+                    <div className="flex items-center justify-between mb-4">
+                      <Dialog.Title className="text-lg font-syne font-bold text-red flex items-center gap-2">
+                        <Trash2 size={18} />
+                        Delete Protocol?
+                      </Dialog.Title>
+                      <Dialog.Close className="text-text-muted hover:text-text-primary h-8 w-8 flex items-center justify-center rounded-lg hover:bg-card-2">
+                        <X size={20} />
+                      </Dialog.Close>
+                    </div>
+                    <p className="text-sm text-text-secondary mb-4">
+                      This permanently deletes <strong>{protocol.name}</strong> and all associated data. This action <strong className="text-red">cannot be undone</strong>.
+                    </p>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-text-muted uppercase tracking-wider">
+                        Type <span className="font-mono text-red">{protocol.name}</span> to confirm
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red font-mono"
+                        placeholder={protocol.name}
+                        value={deleteConfirmName}
+                        onChange={(e) => setDeleteConfirmName(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex justify-end gap-3 mt-6">
+                      <Dialog.Close asChild>
+                        <Button variant="ghost">Cancel</Button>
+                      </Dialog.Close>
+                      <Button
+                        variant="danger"
+                        disabled={deleteConfirmName !== protocol.name || deleteProtocol.isPending}
+                        onClick={() => deleteProtocol.mutate()}
+                      >
+                        {deleteProtocol.isPending ? 'Deleting…' : 'Permanently Delete'}
+                      </Button>
+                    </div>
+                  </Dialog.Content>
+                </Dialog.Portal>
+              </Dialog.Root>
             </div>
           </Card>
 

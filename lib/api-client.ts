@@ -133,6 +133,8 @@ export const apiClient = {
     client.put<Protocol>(`/protocols/${id}/verify`, { note }).then(r => r.data),
   rejectVerification: (id: string, note: string) =>
     client.put<Protocol>(`/protocols/${id}/reject-verification`, { note }).then(r => r.data),
+  deleteProtocol: (id: string) =>
+    client.delete<{ success: boolean }>(`/protocols/${id}`).then(r => r.data),
   getProtocolAuditLog: (id: string, params?: { page?: number; per_page?: number }) =>
     client.get<PaginatedResponse<AuditLogEntry>>(`/protocols/${id}/audit-log`, { params }).then(r => r.data),
 
