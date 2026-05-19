@@ -26,7 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useOverview } from '@/hooks/use-overview'
 import { useMetrics } from '@/hooks/use-metrics'
 import { useProtocols } from '@/hooks/use-protocols'
-import { formatRelativeTime, formatCount } from '@/lib/format'
+import { formatRelativeTime, formatCount, formatActivityDescription } from '@/lib/format'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -180,7 +180,7 @@ export default function DashboardPage() {
               <div className="space-y-2">
                 {overview.recent_activity.slice(0, 4).map((event) => (
                   <div key={event.id} className="flex items-center justify-between text-xs">
-                    <span className="text-text-secondary">{event.description}</span>
+                    <span className="text-text-secondary">{formatActivityDescription(event.description)}</span>
                     <span className="text-text-muted font-mono">{formatRelativeTime(event.created_at)}</span>
                   </div>
                 ))}

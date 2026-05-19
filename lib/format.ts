@@ -70,3 +70,80 @@ export function formatSeverity(sev: IncidentSeverity): string {
   }
   return severities[sev]
 }
+
+const ACTIVITY_LABELS: Record<string, string> = {
+  // Protocol CRUD
+  'post.protocols': 'Protocol registered',
+  'patch.protocols': 'Protocol updated',
+  'put.protocols': 'Protocol updated',
+  'delete.protocols': 'Protocol deleted',
+
+  // API keys
+  'post.api-keys': 'API key created',
+  'patch.api-keys': 'API key updated',
+  'put.api-keys': 'API key updated',
+  'delete.api-keys': 'API key deleted',
+  'post.apikeys': 'API key created',
+  'delete.apikeys': 'API key deleted',
+
+  // Protocol assets
+  'protocol_asset.create': 'Protocol asset added',
+  'protocol_asset.delete': 'Protocol asset removed',
+  'protocol_asset.update': 'Protocol asset updated',
+
+  // Sandbox / settings
+  'protocol.sandbox_settings.update': 'Sandbox settings updated',
+  'protocol.settings.update': 'Protocol settings updated',
+
+  // Notifications
+  'post.notifications': 'Notification sent',
+  'patch.notifications': 'Notification updated',
+  'delete.notifications': 'Notification deleted',
+
+  // Moderation
+  'protocol.suspend': 'Protocol suspended',
+  'protocol.unsuspend': 'Protocol unsuspended',
+  'protocol.reactivate': 'Protocol reactivated',
+  'protocol.strike': 'Strike issued',
+  'protocol.verify': 'Protocol verified',
+  'protocol.tier_change': 'Tier changed',
+  'tier.change': 'Tier changed',
+
+  // Incidents
+  'post.incidents': 'Incident created',
+  'patch.incidents': 'Incident updated',
+  'delete.incidents': 'Incident deleted',
+  'incident.resolve': 'Incident resolved',
+
+  // Templates
+  'post.templates': 'Template created',
+  'patch.templates': 'Template updated',
+  'delete.templates': 'Template deleted',
+
+  // Team / admins
+  'post.admins': 'Admin added',
+  'patch.admins': 'Admin updated',
+  'delete.admins': 'Admin removed',
+
+  // Design partners
+  'post.design-partners': 'Design partner added',
+  'patch.design-partners': 'Design partner updated',
+  'delete.design-partners': 'Design partner removed',
+}
+
+/**
+ * Convert a raw backend activity/audit action string into a human-readable label.
+ * Handles dot-separated "method.resource" patterns and named action strings.
+ */
+export function formatActivityDescription(raw: string): string {
+  if (!raw) return '—'
+
+  const lower = raw.toLowerCase().trim()
+
+  if (ACTIVITY_LABELS[lower]) return ACTIVITY_LABELS[lower]
+
+  // Generic fallback: replace dots/underscores/hyphens with spaces and title-case
+  return lower
+    .replace(/[._-]/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+}
