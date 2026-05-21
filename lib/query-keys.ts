@@ -1,4 +1,4 @@
-import type { ProtocolFilters, NotificationFilters, IncidentFilters, ModerationFilters, TemplateFilters } from '../types/api'
+import type { ProtocolFilters, NotificationFilters, IncidentFilters, ModerationFilters, TemplateFilters, SupportFilters } from '../types/api'
 
 export const QUERY_KEYS = {
   overview: () =>
@@ -54,4 +54,10 @@ export const QUERY_KEYS = {
 
   abuseReports: (filters?: { page?: number; protocol_id?: string }) =>
     ['abuse-reports', filters] as const,
+
+  supportTickets: (filters?: SupportFilters) =>
+    ['support-tickets', filters] as const,
+
+  supportTicket: (id: string) =>
+    ['support-ticket', id] as const,
 } as const

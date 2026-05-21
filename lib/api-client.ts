@@ -25,6 +25,8 @@ import type {
   TemplateFilters,
   AbuseReport,
   AbuseReportFilters,
+  SupportTicket,
+  SupportFilters,
 } from '../types/api'
 import type { Tier } from '../types/billing'
 
@@ -165,6 +167,18 @@ export const apiClient = {
   // Abuse Reports (Sprint 5)
   getAbuseReports: (filters?: AbuseReportFilters) =>
     client.get<PaginatedResponse<AbuseReport>>('/reports', { params: filters }).then(r => r.data),
+
+  // Support tickets
+  getSupportTickets: (filters?: SupportFilters) =>
+    client.get<PaginatedResponse<SupportTicket>>('/support/tickets', { params: filters }).then(r => r.data),
+  getSupportTicket: (id: string) =>
+    client.get<SupportTicket>(`/support/tickets/${id}`).then(r => r.data),
+  adminReplyToTicket: (id: string, body: string, isInternal?: boolean) =>
+    client.post<{ id: string }>(`/support/tickets/${id}/reply`, { body, isInternal }).then(r => r.data),
+  updateTicketStatus: (id: string, status: string, resolutionNote?: string) =>
+    client.put<SupportTicket>(`/support/tickets/${id}/status`, { status, resolutionNote }).then(r => r.data),
+  assignTicket: (id: string, adminUserId: string) =>
+    client.put<SupportTicket>(`/support/tickets/${id}/assign`, { adminUserId }).then(r => r.data),
 
   // Team
   getTeam: () =>

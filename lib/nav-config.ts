@@ -13,6 +13,7 @@ import {
   BarChart2,
   Wrench,
   DollarSign,
+  MessageCircle,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -63,6 +64,12 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Incidents',
     items: [
       { name: 'Incidents', href: '/incidents', icon: ShieldAlert, badgeKey: 'openIncidents' },
+    ],
+  },
+  {
+    label: 'Support',
+    items: [
+      { name: 'Tickets', href: '/support', icon: MessageCircle, badgeKey: 'openSupportTickets' },
     ],
   },
   {

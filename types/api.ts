@@ -47,8 +47,14 @@ export interface Protocol {
   sends_limit: number
   period_reset_at: string           // ISO datetime
   created_at: string
-  stripe_customer_id: string | null
-  contact_email_hash: string | null  // SHA-256 — NEVER plaintext. null when protocol has no settings record.
+  contact_emails: string[]          // decrypted owner/admin team member emails
+  helio_subscription_id: string | null
+  helio_customer_id: string | null
+  subscription_status: string | null
+  subscription_period_end: string | null
+  last_payment_at: string | null
+  last_payment_usdc: number | null
+  last_payment_tx: string | null
   design_partner: boolean
   admin_notes: string | null          // internal admin notes — never shown to protocol
   verification_status: string
@@ -348,4 +354,60 @@ export interface NotificationFilters {
 export interface IncidentFilters {
   severity?: IncidentSeverity
   status?: IncidentStatus
+}
+
+// ─── Support ──────────────────────────────────────────────────────────
+export type SupportTicketStatus =
+  | 'open'
+  | 'in_progress'
+  | 'waiting_on_protocol'
+  | 'resolved'
+  | 'closed'
+
+export type SupportTicketCategory =
+  | 'api_issue'
+  | 'delivery_failure'
+  | 'billing'
+  | 'verification'
+  | 'account'
+  | 'abuse_report'
+  | 'feature_request'
+  | 'other'
+
+export type SupportTicketPriority = 'low' | 'normal' | 'high' | 'urgent'
+
+export interface SupportTicketMessage {
+  id: string
+  senderType: 'protocol' | 'end_user' | 'herald_team'
+  body: string
+  isInternal: boolean
+  createdAt: string
+}
+
+export interface SupportTicket {
+  id: string
+  protocolId: string | null
+  protocolName?: string | null
+  category: SupportTicketCategory
+  subject: string
+  status: SupportTicketStatus
+  priority: SupportTicketPriority
+  protocolTier: number | null
+  linearIssueUrl: string | null
+  assignedTo: string | null
+  resolvedAt: string | null
+  resolutionNote: string | null
+  createdAt: string
+  updatedAt: string
+  messages?: SupportTicketMessage[]
+  enrichmentSnapshot?: Record<string, unknown>
+}
+
+export interface SupportFilters {
+  page?: number
+  per_page?: number
+  status?: SupportTicketStatus
+  category?: SupportTicketCategory
+  priority?: SupportTicketPriority
+  protocol_id?: string
 }
