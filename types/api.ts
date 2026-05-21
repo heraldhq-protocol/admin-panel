@@ -411,3 +411,8 @@ export interface SupportFilters {
   priority?: SupportTicketPriority
   protocol_id?: string
 }
+
+export interface SupportTicketListResponse {
+  items: SupportTicket[]
+  total: number
+}

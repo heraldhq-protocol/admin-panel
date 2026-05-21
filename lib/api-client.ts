@@ -27,6 +27,7 @@ import type {
   AbuseReportFilters,
   SupportTicket,
   SupportFilters,
+  SupportTicketListResponse,
 } from '../types/api'
 import type { Tier } from '../types/billing'
 
@@ -168,17 +169,19 @@ export const apiClient = {
   getAbuseReports: (filters?: AbuseReportFilters) =>
     client.get<PaginatedResponse<AbuseReport>>('/reports', { params: filters }).then(r => r.data),
 
-  // Support tickets
+  // Support tickets (admin)
   getSupportTickets: (filters?: SupportFilters) =>
-    client.get<PaginatedResponse<SupportTicket>>('/support/tickets', { params: filters }).then(r => r.data),
+    client.get<SupportTicketListResponse>('/admin/support/tickets', { params: filters }).then(r => r.data),
   getSupportTicket: (id: string) =>
-    client.get<SupportTicket>(`/support/tickets/${id}`).then(r => r.data),
+    client.get<SupportTicket>(`/admin/support/tickets/${id}`).then(r => r.data),
   adminReplyToTicket: (id: string, body: string, isInternal?: boolean) =>
-    client.post<{ id: string }>(`/support/tickets/${id}/reply`, { body, isInternal }).then(r => r.data),
+    client.post<{ id: string }>(`/admin/support/tickets/${id}/reply`, { body, isInternal }).then(r => r.data),
   updateTicketStatus: (id: string, status: string, resolutionNote?: string) =>
-    client.put<SupportTicket>(`/support/tickets/${id}/status`, { status, resolutionNote }).then(r => r.data),
+    client.put<SupportTicket>(`/admin/support/tickets/${id}/status`, { status, resolutionNote }).then(r => r.data),
   assignTicket: (id: string, adminUserId: string) =>
-    client.put<SupportTicket>(`/support/tickets/${id}/assign`, { adminUserId }).then(r => r.data),
+    client.put<SupportTicket>(`/admin/support/tickets/${id}/assign`, { adminUserId }).then(r => r.data),
+  updateTicketPriority: (id: string, priority: string) =>
+    client.put<SupportTicket>(`/admin/support/tickets/${id}/priority`, { priority }).then(r => r.data),
 
   // Team
   getTeam: () =>

@@ -129,7 +129,7 @@ export default function SupportTicketsPage() {
   const filters: SupportFilters = statusFilter ? { status: statusFilter } : {}
   const { data, isLoading } = useSupportTickets({ ...filters, page, per_page: 20 })
 
-  const tickets = data?.data ?? []
+  const tickets = data?.items ?? []
   const total = data?.total ?? 0
   const totalPages = Math.ceil(total / 20)
 

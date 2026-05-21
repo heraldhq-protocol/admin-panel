@@ -7,7 +7,14 @@ import { ExternalLink, ChevronLeft, Loader2 } from 'lucide-react'
 import { PageHeader } from '@/components/ui/page-header'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { useSupportTicket, useAdminReplyToTicket, useUpdateTicketStatus } from '@/hooks/use-support'
+import {
+  useSupportTicket,
+  useAdminReplyToTicket,
+  useUpdateTicketStatus,
+  useUpdateTicketPriority,
+  useAssignTicket,
+} from '@/hooks/use-support'
+import { useTeam } from '@/hooks/use-team'
 import { formatDistanceToNow, format } from 'date-fns'
 import type { SupportTicketStatus, SupportTicketCategory, SupportTicketPriority } from '@/types/api'
 
@@ -45,6 +52,8 @@ const CATEGORY_LABEL: Record<SupportTicketCategory, string> = {
   other: 'Other',
 }
 
+const PRIORITIES: SupportTicketPriority[] = ['urgent', 'high', 'normal', 'low']
+
 const STATUS_TRANSITIONS: { label: string; value: SupportTicketStatus }[] = [
   { label: 'Mark Open', value: 'open' },
   { label: 'In Progress', value: 'in_progress' },
@@ -57,8 +66,11 @@ export default function SupportTicketDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const { data: ticket, isLoading } = useSupportTicket(id)
+  const { data: team } = useTeam()
   const replyMutation = useAdminReplyToTicket()
   const statusMutation = useUpdateTicketStatus()
+  const priorityMutation = useUpdateTicketPriority()
+  const assignMutation = useAssignTicket()
 
   const [replyBody, setReplyBody] = React.useState('')
   const [isInternal, setIsInternal] = React.useState(false)
@@ -105,6 +117,24 @@ export default function SupportTicketDetailPage() {
     }
   }
 
+  async function handlePriorityChange(priority: string) {
+    try {
+      await priorityMutation.mutateAsync({ id, priority })
+      toast.success(`Priority set to ${priority}`)
+    } catch {
+      toast.error('Failed to update priority')
+    }
+  }
+
+  async function handleAssign(adminUserId: string) {
+    try {
+      await assignMutation.mutateAsync({ id, adminUserId })
+      toast.success('Ticket assigned.')
+    } catch {
+      toast.error('Failed to assign ticket')
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24 text-text-secondary">
@@ -119,6 +149,7 @@ export default function SupportTicketDetailPage() {
 
   const messages = ticket.messages ?? []
   const enrichment = ticket.enrichmentSnapshot
+  const isTerminal = ticket.status === 'resolved' || ticket.status === 'closed'
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -171,8 +202,8 @@ export default function SupportTicketDetailPage() {
             ))}
           </div>
 
-          {/* Reply box */}
-          {!['resolved', 'closed'].includes(ticket.status) && (
+          {/* Reply box — only for non-terminal tickets */}
+          {!isTerminal ? (
             <div className="rounded-lg border border-border bg-bg-elevated p-4 space-y-3">
               <div className="flex items-center gap-3">
                 <span className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Reply</span>
@@ -191,9 +222,11 @@ export default function SupportTicketDetailPage() {
                 value={replyBody}
                 onChange={(e) => setReplyBody(e.target.value)}
                 rows={4}
+                maxLength={5000}
                 className="w-full rounded-md border border-border bg-bg-card px-3 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-border-accent focus:outline-none focus:ring-1 focus:ring-border-accent resize-none"
               />
-              <div className="flex justify-end">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-text-tertiary">{replyBody.length}/5000</span>
                 <Button
                   size="sm"
                   disabled={replyBody.length < 5 || replyMutation.isPending}
@@ -204,6 +237,12 @@ export default function SupportTicketDetailPage() {
                   ) : isInternal ? 'Save Note' : 'Send Reply'}
                 </Button>
               </div>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-border bg-bg-elevated p-4">
+              <p className="text-sm text-text-secondary">
+                This ticket is <span className="font-medium text-text-primary">{STATUS_LABEL[ticket.status]}</span> — no further replies can be added.
+              </p>
             </div>
           )}
 
@@ -250,10 +289,6 @@ export default function SupportTicketDetailPage() {
                 <dt className="text-text-secondary">Category</dt>
                 <dd className="text-text-primary">{CATEGORY_LABEL[ticket.category]}</dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-text-secondary">Priority</dt>
-                <dd><Badge variant={PRIORITY_BADGE[ticket.priority] as any}>{ticket.priority}</Badge></dd>
-              </div>
               {ticket.resolvedAt && (
                 <div className="flex justify-between">
                   <dt className="text-text-secondary">Resolved</dt>
@@ -280,8 +315,29 @@ export default function SupportTicketDetailPage() {
             )}
           </div>
 
+          {/* Priority */}
+          <div className="rounded-lg border border-border bg-bg-elevated p-4 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary mb-3">Priority</p>
+            <div className="flex flex-wrap gap-1.5">
+              {PRIORITIES.map((p) => (
+                <button
+                  key={p}
+                  disabled={priorityMutation.isPending}
+                  onClick={() => handlePriorityChange(p)}
+                  className={`px-2.5 py-1 rounded text-xs font-medium border transition-colors ${
+                    ticket.priority === p
+                      ? 'bg-bg-card border-border-accent text-text-primary'
+                      : 'border-border text-text-secondary hover:border-border-muted hover:text-text-primary'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Status actions */}
-          {!['resolved', 'closed'].includes(ticket.status) && (
+          {!isTerminal && (
             <div className="rounded-lg border border-border bg-bg-elevated p-4 space-y-2">
               <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary mb-3">Update Status</p>
               {STATUS_TRANSITIONS.filter((t) => t.value !== ticket.status).map((t) => (
@@ -296,6 +352,26 @@ export default function SupportTicketDetailPage() {
                   {t.label}
                 </Button>
               ))}
+            </div>
+          )}
+
+          {/* Assign */}
+          {team && team.length > 0 && (
+            <div className="rounded-lg border border-border bg-bg-elevated p-4 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary mb-3">Assign To</p>
+              <select
+                className="w-full rounded-md border border-border bg-bg-card px-2.5 py-1.5 text-sm text-text-primary focus:border-border-accent focus:outline-none"
+                value={ticket.assignedTo ?? ''}
+                onChange={(e) => e.target.value && handleAssign(e.target.value)}
+                disabled={assignMutation.isPending}
+              >
+                <option value="">— Unassigned —</option>
+                {team.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.display_name}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
 
