@@ -335,15 +335,47 @@ export default function ProtocolDetailsPage() {
           </Card>
 
           <Card padding="lg" className="space-y-4">
-            <h3 className="font-syne text-base font-bold">Stripe</h3>
+            <h3 className="font-syne text-base font-bold">Helio / On-Chain</h3>
             <div className="space-y-3 text-sm">
               <div>
-                <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Customer ID</p>
-                <p className="flex items-center gap-1 font-mono text-xs mt-0.5">
-                  {protocol.stripe_customer_id ?? 'N/A'}
-                  {protocol.stripe_customer_id && <ExternalLink size={12} className="text-text-muted" />}
+                <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Subscription Status</p>
+                <p className="mt-0.5">
+                  {protocol.subscription_status
+                    ? <span className={protocol.subscription_status === 'active' ? 'text-teal font-medium' : 'text-text-secondary'}>{protocol.subscription_status}</span>
+                    : <span className="text-text-muted italic">No active subscription</span>}
                 </p>
               </div>
+              {protocol.helio_subscription_id && (
+                <div>
+                  <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Helio Subscription ID</p>
+                  <p className="font-mono text-xs mt-0.5 break-all">{protocol.helio_subscription_id}</p>
+                </div>
+              )}
+              {protocol.subscription_period_end && (
+                <div>
+                  <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Period Ends</p>
+                  <p className="mt-0.5">{new Date(protocol.subscription_period_end).toLocaleDateString()}</p>
+                </div>
+              )}
+              {protocol.last_payment_at && (
+                <div>
+                  <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Last Payment</p>
+                  <p className="mt-0.5">
+                    <span className="font-mono text-teal">{protocol.last_payment_usdc != null ? `${(protocol.last_payment_usdc / 1_000_000).toFixed(2)} USDC` : '—'}</span>
+                    <span className="text-text-muted ml-2 text-[11px]">{formatRelativeTime(protocol.last_payment_at)}</span>
+                  </p>
+                  {protocol.last_payment_tx && (
+                    <a
+                      href={`https://solscan.io/tx/${protocol.last_payment_tx}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] text-teal hover:underline mt-0.5"
+                    >
+                      View on Solscan <ExternalLink size={10} />
+                    </a>
+                  )}
+                </div>
+              )}
               <div>
                 <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Registered</p>
                 <p>{formatRelativeTime(protocol.created_at)}</p>
@@ -691,6 +723,28 @@ export default function ProtocolDetailsPage() {
             </div>
           </Card>
 
+          {/* Contact */}
+          {protocol.contact_emails && protocol.contact_emails.length > 0 && (
+            <Card padding="lg" className="space-y-3">
+              <h3 className="font-syne text-base font-bold flex items-center gap-2">
+                <Mail className="h-4 w-4 text-teal" />
+                Contact Emails
+              </h3>
+              <div className="space-y-1.5">
+                {protocol.contact_emails.map((email) => (
+                  <a
+                    key={email}
+                    href={`mailto:${email}`}
+                    className="flex items-center gap-2 text-sm text-teal hover:underline"
+                  >
+                    <Mail size={13} />
+                    {email}
+                  </a>
+                ))}
+              </div>
+            </Card>
+          )}
+
           {/* Metadata */}
           <Card padding="lg" className="space-y-4">
             <h3 className="font-syne text-base font-bold">Metadata</h3>
@@ -698,17 +752,6 @@ export default function ProtocolDetailsPage() {
               <div>
                 <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Protocol ID</p>
                 <code className="text-[11px] font-mono select-all break-all">{protocol.id}</code>
-              </div>
-              <div>
-                <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Stripe Customer</p>
-                <p className="flex items-center gap-1">
-                  {protocol.stripe_customer_id ?? 'N/A'}
-                  {protocol.stripe_customer_id && <ExternalLink size={12} className="text-text-muted" />}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Contact Hash (SHA-256)</p>
-                <code className="text-[11px] font-mono break-all">{protocol.contact_email_hash != null ? protocol.contact_email_hash.slice(0, 16) + '…' : 'N/A'}</code>
               </div>
               <div>
                 <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Registered</p>
