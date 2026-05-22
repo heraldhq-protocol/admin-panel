@@ -92,7 +92,7 @@ export default function ProtocolsPage() {
   const exportRows = protocols.map((p) => ({
     id: p.id,
     name: p.name,
-    wallet: p.wallet_address,
+    wallet: p.protocol_pubkey,
     tier: TIER_LABELS[p.tier] ?? String(p.tier),
     status: p.is_active ? 'active' : 'suspended',
     verification: p.verification_status,

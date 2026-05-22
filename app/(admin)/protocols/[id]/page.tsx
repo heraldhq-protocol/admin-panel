@@ -13,6 +13,7 @@ import {
   History,
   CreditCard,
   ExternalLink,
+  Mail,
   Save,
   X,
   Bell,

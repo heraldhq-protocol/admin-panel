@@ -62,6 +62,7 @@ export interface Protocol {
   strike_count: number
   strikes_reset_at: string | null
   last_strike_at: string | null
+  registration_flags: Record<string, unknown> | null
 }
 
 export interface Notification {

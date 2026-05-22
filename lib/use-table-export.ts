@@ -31,7 +31,7 @@ export function useTableExport<T extends Record<string, unknown>>(
   options: { filename?: string } = {},
 ) {
   const exportCsv = () => {
-    if (!data.length) return;
+    if (!data.length || !data[0]) return;
 
     const headers = Object.keys(data[0]);
     const rows = [
