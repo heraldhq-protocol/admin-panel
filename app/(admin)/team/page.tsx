@@ -4,7 +4,7 @@
 
 import * as React from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { UserPlus, Shield, User, X, Trash2 } from 'lucide-react'
+import { UserPlus, Shield, User, X, Trash2, AlertTriangle } from 'lucide-react'
 
 import { PageHeader } from '@/components/ui/page-header'
 import { DataTable } from '@/components/ui/data-table'
@@ -15,6 +15,7 @@ import { useTeam } from '@/hooks/use-team'
 import { useInviteTeamMember } from '@/hooks/use-invite-team-member'
 import { useUpdateTeamRole } from '@/hooks/use-update-team-role'
 import { useRemoveTeamMember } from '@/hooks/use-remove-team-member'
+import { useAnalytics } from '@/hooks/use-analytics'
 import { formatRelativeTime } from '@/lib/format'
 import type { TeamMember } from '@/types/api'
 import type { AdminRole, AuthMethod } from '@/types/auth'
@@ -29,11 +30,13 @@ export default function TeamPage() {
   const inviteMember = useInviteTeamMember()
   const updateRole = useUpdateTeamRole()
   const removeMember = useRemoveTeamMember()
+  const { capture } = useAnalytics()
 
   const PAGE_SIZE = 10
   const [page, setPage] = React.useState(1)
   const [inviteOpen, setInviteOpen] = React.useState(false)
   const [editMember, setEditMember] = React.useState<TeamMember | null>(null)
+  const [memberToRemove, setMemberToRemove] = React.useState<TeamMember | null>(null)
   const [invite, setInvite] = React.useState({
     display_name: '',
     role: 'viewer' as Exclude<AdminRole, 'super_admin'>,
@@ -55,6 +58,7 @@ export default function TeamPage() {
         onSuccess: () => {
           setInviteOpen(false)
           setInvite({ display_name: '', role: 'viewer', auth_method: 'email-totp', email: '', wallet_address: '' })
+          capture('team_member_invited', { role: invite.role, auth_method: invite.auth_method })
         },
       },
     )
@@ -118,8 +122,7 @@ export default function TeamPage() {
               variant="ghost"
               size="sm"
               className="text-red hover:text-red hover:bg-admin-bg"
-              disabled={removeMember.isPending}
-              onClick={() => removeMember.mutate(member.id)}
+              onClick={() => setMemberToRemove(member)}
             >
               <Trash2 size={14} />
             </Button>
@@ -273,6 +276,48 @@ export default function TeamPage() {
               </Dialog.Close>
               <Button disabled={!isInviteValid || inviteMember.isPending} onClick={handleInvite}>
                 Send Invitation
+              </Button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* Remove Member Confirmation Dialog */}
+      <Dialog.Root open={memberToRemove !== null} onOpenChange={(open) => { if (!open) setMemberToRemove(null) }}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-in fade-in" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-sm bg-bg-elevated border border-red/30 rounded-xl shadow-lg z-50 p-6 animate-in zoom-in-95 duration-200 focus:outline-none">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-9 w-9 rounded-full bg-red/10 flex items-center justify-center shrink-0">
+                <AlertTriangle className="h-4 w-4 text-red" />
+              </div>
+              <Dialog.Title className="text-base font-syne font-bold text-text-primary">
+                Remove {memberToRemove?.display_name}?
+              </Dialog.Title>
+            </div>
+            <Dialog.Description className="text-sm text-text-secondary mb-5">
+              This will immediately revoke their access to the Herald admin panel. They will need a new invitation to regain access.
+            </Dialog.Description>
+            <div className="flex gap-3 justify-end">
+              <Dialog.Close asChild>
+                <Button variant="ghost" size="sm">Cancel</Button>
+              </Dialog.Close>
+              <Button
+                variant="danger"
+                size="sm"
+                disabled={removeMember.isPending}
+                onClick={() => {
+                  if (memberToRemove) {
+                    removeMember.mutate(memberToRemove.id, {
+                      onSuccess: () => {
+                        capture('team_member_removed', { role: memberToRemove.role })
+                        setMemberToRemove(null)
+                      },
+                    })
+                  }
+                }}
+              >
+                {removeMember.isPending ? 'Removing…' : 'Remove Member'}
               </Button>
             </div>
           </Dialog.Content>

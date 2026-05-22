@@ -2,12 +2,15 @@ import type { NextConfig } from 'next'
 
 // Fail the build in production if required env vars are missing.
 if (process.env.NODE_ENV === 'production') {
-  const required = ['NEXTAUTH_SECRET']
+  const required = ['NEXTAUTH_SECRET', 'HERALD_BACKEND_URL']
   const missing = required.filter((k) => !process.env[k])
   if (missing.length > 0) {
     throw new Error(
       `[Herald] Missing required env vars for production build: ${missing.join(', ')}`
     )
+  }
+  if (process.env.NEXT_PUBLIC_ENABLE_MOCKS === 'true') {
+    throw new Error('[Herald] NEXT_PUBLIC_ENABLE_MOCKS must not be true in production builds')
   }
 }
 

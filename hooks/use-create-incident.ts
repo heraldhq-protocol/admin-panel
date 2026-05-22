@@ -19,8 +19,12 @@ export function useCreateIncident() {
 
   return useMutation({
     mutationFn: (data: CreateIncidentInput) => apiClient.createIncident(data),
-    onSuccess: (_data, input) => {
-      track('incident_created', { severity: input.severity })
+    onSuccess: (data, input) => {
+      track('incident_created', {
+        incident_id: (data as any)?.id ?? '',
+        severity: input.severity,
+        title: input.title,
+      })
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.incidents() })
       toast.success('Incident declared. On-call paged.')
     },

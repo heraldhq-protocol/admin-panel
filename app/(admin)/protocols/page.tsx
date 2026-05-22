@@ -7,8 +7,9 @@ import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   Plus, Search, X, ShieldAlert, ShieldCheck,
-  CheckSquare, Square, Layers,
+  CheckSquare, Square, Layers, Download,
 } from 'lucide-react'
+import { useTableExport } from '@/lib/use-table-export'
 import * as Dialog from '@radix-ui/react-dialog'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/ui/page-header'
@@ -88,6 +89,18 @@ export default function ProtocolsPage() {
 
   const selectedIds = [...selected]
 
+  const exportRows = protocols.map((p) => ({
+    id: p.id,
+    name: p.name,
+    wallet: p.wallet_address,
+    tier: TIER_LABELS[p.tier] ?? String(p.tier),
+    status: p.is_active ? 'active' : 'suspended',
+    verification: p.verification_status,
+    sends_this_period: p.sends_this_period,
+    created_at: p.created_at,
+  }))
+  const { exportCsv } = useTableExport(exportRows, { filename: 'protocols.csv' })
+
   async function handleBulkSuspend() {
     setBulkPending(true)
     let ok = 0, fail = 0
@@ -145,6 +158,11 @@ export default function ProtocolsPage() {
         title="Protocol Registry"
         description="Manage all connected protocols, their subscription tiers, and operational status."
         actions={
+          <>
+            <Button variant="outline" size="sm" onClick={exportCsv} disabled={protocols.length === 0}>
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
           <Dialog.Root>
             <Dialog.Trigger asChild>
               <Button>
@@ -182,6 +200,7 @@ export default function ProtocolsPage() {
               </Dialog.Content>
             </Dialog.Portal>
           </Dialog.Root>
+          </>
         }
       />
 

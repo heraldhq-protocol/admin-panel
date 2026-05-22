@@ -130,6 +130,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.code) return null
 
+        if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_ENABLE_MOCKS === 'true') {
+          throw new Error('NEXT_PUBLIC_ENABLE_MOCKS must not be true in production')
+        }
+
         if (process.env.NEXT_PUBLIC_ENABLE_MOCKS === 'true' && credentials.code === '123456') {
           const exp = Math.floor(Date.now() / 1000) + 8 * 3600
           return {

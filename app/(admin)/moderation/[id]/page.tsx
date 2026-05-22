@@ -20,6 +20,7 @@ import {
   useDismissModeration,
   useProtocolAuditLog,
 } from '@/hooks/use-moderation'
+import { useAnalytics } from '@/hooks/use-analytics'
 
 const TYPE_LABEL: Record<string, string> = {
   protocol_registration: 'Registration Screening',
@@ -31,6 +32,7 @@ const TYPE_LABEL: Record<string, string> = {
 export default function ModerationDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const { capture } = useAnalytics()
   const [strikeReason, setStrikeReason] = React.useState('')
   const [forceSuspend, setForceSuspend] = React.useState(false)
   const [strikeOpen, setStrikeOpen] = React.useState(false)
@@ -49,6 +51,11 @@ export default function ModerationDetailPage() {
     try {
       await approve.mutateAsync(id)
       toast.success('Item approved — flag cleared.')
+      capture('moderation_approved', {
+        item_id: id,
+        type: item?.type ?? 'unknown',
+        severity: item?.severity ?? 'unknown',
+      })
     } catch {
       toast.error('Failed to approve item.')
     }
@@ -66,6 +73,12 @@ export default function ModerationDetailPage() {
           ? `Strike issued — protocol suspended (${result.strike_count} total strikes).`
           : `Strike ${result.strike_count} issued.`,
       )
+      capture('moderation_strike_issued', {
+        item_id: id,
+        protocol_id: item?.protocol_id ?? '',
+        strike_count: result.strike_count,
+        force_suspend: forceSuspend,
+      })
       setStrikeOpen(false)
       setStrikeReason('')
     } catch {
@@ -77,6 +90,10 @@ export default function ModerationDetailPage() {
     try {
       await dismiss.mutateAsync(id)
       toast.success('Dismissed as false positive.')
+      capture('moderation_dismissed', {
+        item_id: id,
+        type: item?.type ?? 'unknown',
+      })
     } catch {
       toast.error('Failed to dismiss item.')
     }

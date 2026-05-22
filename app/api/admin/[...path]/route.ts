@@ -9,6 +9,28 @@ import type { NextRequest } from 'next/server'
 const BACKEND_URL =
   process.env.HERALD_BACKEND_URL ?? 'http://localhost:3001/v1'
 
+// Routes that mutate state — viewer-role sessions are blocked from these regardless of what the UI shows.
+// Patterns are matched against the joined path segments (no leading slash, no query string).
+const VIEWER_BLOCKED_PATTERNS: RegExp[] = [
+  /^protocols\/[^/]+\/suspend$/,
+  /^protocols\/[^/]+\/tier$/,
+  /^protocols\/[^/]+\/tier\/[^/]+$/,
+  /^moderation\/[^/]+\/strike$/,
+  /^moderation\/[^/]+\/dismiss$/,
+  /^team\/invite$/,
+  /^team\/[^/]+\/remove$/,
+  /^team\/[^/]+\/role$/,
+  /^design-partners\/[^/]+\/stage$/,
+  /^design-partners$/,          // POST (create new partner)
+  /^design-partners\/[^/]+$/,   // DELETE
+]
+
+function isBlockedForViewer(method: string, pathSegments: string[]): boolean {
+  if (method === 'GET') return false
+  const joined = pathSegments.join('/')
+  return VIEWER_BLOCKED_PATTERNS.some((re) => re.test(joined))
+}
+
 async function proxy(
   req: NextRequest,
   params: Promise<{ path: string[] }>,
@@ -28,6 +50,12 @@ async function proxy(
   }
 
   const { path } = await params
+
+  // Block viewer-role sessions from mutating endpoints.
+  // The UI already hides these controls, but defence-in-depth requires server-side enforcement.
+  if (session.user?.role === 'viewer' && isBlockedForViewer(req.method, path)) {
+    return Response.json({ error: 'Forbidden' }, { status: 403 })
+  }
   const search = req.nextUrl.search
   const targetUrl = `${BACKEND_URL}/admin/${path.join('/')}${search}`
 

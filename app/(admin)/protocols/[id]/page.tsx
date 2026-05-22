@@ -40,6 +40,7 @@ import { useVerifyProtocol } from '@/hooks/use-verify-protocol'
 import { useRejectVerification } from '@/hooks/use-reject-verification'
 import { useDeleteProtocol } from '@/hooks/use-delete-protocol'
 import { useDebounce } from '@/hooks/use-debounce'
+import { useAnalytics } from '@/hooks/use-analytics'
 import { cn } from '@/lib/cn'
 import type { Tier } from '@/types/billing'
 import type { AuditLogEntry } from '@/types/api'
@@ -66,6 +67,7 @@ export default function ProtocolDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
+  const { capture } = useAnalytics()
 
   const { data: protocol, isLoading, isError } = useQuery({
     queryKey: QUERY_KEYS.protocol(id),
@@ -118,6 +120,11 @@ export default function ProtocolDetailsPage() {
       onSuccess: () => {
         setSuspendOpen(false)
         setSuspendReason('')
+        capture('protocol_suspended', {
+          protocol_id: id,
+          protocol_name: protocol?.name ?? '',
+          reason_length: suspendReason.length,
+        })
       },
     })
   }
@@ -449,6 +456,35 @@ export default function ProtocolDetailsPage() {
             </div>
           </Card>
 
+          {/* Registration Screening */}
+          {protocol.registration_flags && (
+            <Card padding="lg" className="space-y-3">
+              <h3 className="font-syne text-sm font-bold flex items-center gap-2">
+                <ShieldAlert className="h-4 w-4 text-gold" />
+                Registration Screening
+              </h3>
+              {(() => {
+                const flags = protocol.registration_flags as { passed?: boolean; flags?: string[] }
+                const flagList: string[] = flags.flags ?? []
+                return flagList.length === 0 ? (
+                  <p className="text-xs text-text-muted flex items-center gap-1.5">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-teal" />
+                    No issues detected at registration
+                  </p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {flagList.map((flag) => (
+                      <div key={flag} className="flex items-center gap-2 text-xs text-gold">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-gold shrink-0" />
+                        {flag.replace(/_/g, ' ')}
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
+            </Card>
+          )}
+
           {/* Admin Notes */}
           <Card padding="lg" className="space-y-4">
             <div className="flex items-center justify-between">
@@ -486,7 +522,17 @@ export default function ProtocolDetailsPage() {
               <select
                 className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal"
                 value={protocol.tier}
-                onChange={(e) => changeTier.mutate(Number(e.target.value) as Tier)}
+                onChange={(e) => {
+                  const newTier = Number(e.target.value) as Tier
+                  changeTier.mutate(newTier, {
+                    onSuccess: () => capture('protocol_tier_changed', {
+                      protocol_id: id,
+                      protocol_name: protocol.name,
+                      old_tier: protocol.tier,
+                      new_tier: newTier,
+                    }),
+                  })
+                }}
                 disabled={changeTier.isPending}
               >
                 <option value={0}>Developer (Free — 1k sends/mo)</option>
@@ -550,7 +596,9 @@ export default function ProtocolDetailsPage() {
               ) : (
                 <Button
                   className="w-full"
-                  onClick={() => unsuspend.mutate()}
+                  onClick={() => unsuspend.mutate(undefined, {
+                    onSuccess: () => capture('protocol_unsuspended', { protocol_id: id, protocol_name: protocol.name }),
+                  })}
                   disabled={unsuspend.isPending}
                 >
                   <ShieldCheck className="mr-2 h-4 w-4" />
@@ -604,7 +652,11 @@ export default function ProtocolDetailsPage() {
                             disabled={verify.isPending}
                             onClick={() => {
                               verify.mutate(verifyNote || undefined, {
-                                onSuccess: () => { setVerifyOpen(false); setVerifyNote('') },
+                                onSuccess: () => {
+                                  setVerifyOpen(false)
+                                  setVerifyNote('')
+                                  capture('protocol_verified', { protocol_id: id, protocol_name: protocol.name })
+                                },
                               })
                             }}
                           >
@@ -654,7 +706,11 @@ export default function ProtocolDetailsPage() {
                             disabled={rejectNote.trim().length < 5 || rejectVerification.isPending}
                             onClick={() => {
                               rejectVerification.mutate(rejectNote, {
-                                onSuccess: () => { setRejectOpen(false); setRejectNote('') },
+                                onSuccess: () => {
+                                  setRejectOpen(false)
+                                  setRejectNote('')
+                                  capture('protocol_verification_rejected', { protocol_id: id, protocol_name: protocol.name })
+                                },
                               })
                             }}
                           >
@@ -712,7 +768,9 @@ export default function ProtocolDetailsPage() {
                       <Button
                         variant="danger"
                         disabled={deleteConfirmName !== protocol.name || deleteProtocol.isPending}
-                        onClick={() => deleteProtocol.mutate()}
+                        onClick={() => deleteProtocol.mutate(undefined, {
+                          onSuccess: () => capture('protocol_deleted', { protocol_id: id }),
+                        })}
                       >
                         {deleteProtocol.isPending ? 'Deleting…' : 'Permanently Delete'}
                       </Button>
