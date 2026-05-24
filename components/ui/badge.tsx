@@ -14,6 +14,7 @@ const badgeVariants = cva(
         enterprise: 'bg-gold/10 text-gold border-gold/20',
         // Status badges
         active:     'bg-green/10 text-green border-green/20',
+        inactive:   'bg-gold/10 text-gold border-gold/20',
         suspended:  'bg-red/10 text-red border-red/20',
         // Severity badges
         p0:         'bg-red text-white border-transparent',

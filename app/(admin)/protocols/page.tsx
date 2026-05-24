@@ -94,7 +94,7 @@ export default function ProtocolsPage() {
     name: p.name,
     wallet: p.protocol_pubkey,
     tier: TIER_LABELS[p.tier] ?? String(p.tier),
-    status: p.is_active ? 'active' : 'suspended',
+    status: p.is_suspended ? 'suspended' : p.is_active ? 'active' : 'inactive',
     verification: p.verification_status,
     sends_this_period: p.sends_this_period,
     created_at: p.created_at,
@@ -412,8 +412,8 @@ export default function ProtocolsPage() {
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <Badge variant={p.is_active ? 'active' : 'suspended'}>
-                              {p.is_active ? 'ACTIVE' : 'SUSPENDED'}
+                            <Badge variant={p.is_suspended ? 'suspended' : p.is_active ? 'active' : 'inactive'}>
+                              {p.is_suspended ? 'SUSPENDED' : p.is_active ? 'ACTIVE' : 'INACTIVE'}
                             </Badge>
                           </td>
                           <td className="px-4 py-3">
