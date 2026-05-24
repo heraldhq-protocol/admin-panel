@@ -35,6 +35,7 @@ import { WalletAddress } from '@/components/ui/wallet-address'
 import { computeHealthScore, healthLabel, healthVariant } from '@/lib/protocol-health'
 import { useSuspendProtocol } from '@/hooks/use-suspend-protocol'
 import { useUnsuspendProtocol } from '@/hooks/use-unsuspend-protocol'
+import { useActivateProtocol } from '@/hooks/use-activate-protocol'
 import { useChangeTier } from '@/hooks/use-change-tier'
 import { useUpdateProtocolNotes } from '@/hooks/use-update-protocol-notes'
 import { useVerifyProtocol } from '@/hooks/use-verify-protocol'
@@ -78,6 +79,7 @@ export default function ProtocolDetailsPage() {
 
   const suspend = useSuspendProtocol(id)
   const unsuspend = useUnsuspendProtocol(id)
+  const activate = useActivateProtocol(id)
   const changeTier = useChangeTier(id)
   const updateNotes = useUpdateProtocolNotes(id)
 
@@ -155,8 +157,8 @@ export default function ProtocolDetailsPage() {
         description={<WalletAddress address={protocol.protocol_pubkey} truncate={false} className="text-text-muted" />}
         actions={
           <div className="flex flex-wrap gap-2">
-            <Badge variant={protocol.is_active ? 'active' : 'suspended'}>
-              {protocol.is_active ? 'ACTIVE' : 'SUSPENDED'}
+            <Badge variant={protocol.is_suspended ? 'suspended' : protocol.is_active ? 'active' : 'inactive'}>
+              {protocol.is_suspended ? 'SUSPENDED' : protocol.is_active ? 'ACTIVE' : 'INACTIVE'}
             </Badge>
             <Badge variant={protocol.tier === 3 ? 'enterprise' : protocol.tier === 2 ? 'scale' : 'growth'}>
               {formatTier(protocol.tier).toUpperCase()}
@@ -545,7 +547,18 @@ export default function ProtocolDetailsPage() {
             </div>
 
             <div className="pt-2 space-y-2">
-              {protocol.is_active ? (
+              {!protocol.is_active && !protocol.is_suspended ? (
+                <Button
+                  className="w-full"
+                  onClick={() => activate.mutate(undefined, {
+                    onSuccess: () => capture('protocol_activated', { protocol_id: id, protocol_name: protocol.name }),
+                  })}
+                  disabled={activate.isPending}
+                >
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Activate Protocol
+                </Button>
+              ) : protocol.is_active && !protocol.is_suspended ? (
                 <Dialog.Root open={suspendOpen} onOpenChange={setSuspendOpen}>
                   <Dialog.Trigger asChild>
                     <Button variant="danger" className="w-full">
