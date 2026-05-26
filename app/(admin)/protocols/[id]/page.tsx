@@ -166,6 +166,14 @@ export default function ProtocolDetailsPage() {
             <Badge variant={healthVariant(computeHealthScore(protocol))}>
               {healthLabel(computeHealthScore(protocol))}
             </Badge>
+            {(protocol as any).x_username ? (
+              <Badge variant="active">
+                𝕏 @{(protocol as any).x_username}
+                {(protocol as any).x_verified && ' ✓'}
+              </Badge>
+            ) : (
+              <Badge variant="inactive">𝕏 Not connected</Badge>
+            )}
           </div>
         }
       />
