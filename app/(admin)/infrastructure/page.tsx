@@ -125,7 +125,7 @@ function OnchainConfigPanel({ status, tx, errorMsg, onRegister }: OnchainConfigP
             size="sm"
             variant={status === 'unregistered' ? 'default' : 'outline'}
             onClick={onRegister}
-            disabled={status === 'registering'}
+
             className="self-start"
           >
             <Fingerprint className="h-3.5 w-3.5 mr-2" />
