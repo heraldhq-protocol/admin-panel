@@ -131,7 +131,7 @@ function WalletCard({
               </Badge>
             )}
             {isCriticallyLow && (
-              <Badge variant="pending" className="text-[9px]">
+              <Badge variant="inactive" className="text-[9px]">
                 Low — top up soon
               </Badge>
             )}
