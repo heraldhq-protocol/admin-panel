@@ -14,6 +14,7 @@ import {
   Wrench,
   DollarSign,
   MessageCircle,
+  Cpu,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -70,6 +71,12 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Support',
     items: [
       { name: 'Tickets', href: '/support', icon: MessageCircle, badgeKey: 'openSupportTickets' },
+    ],
+  },
+  {
+    label: 'Infrastructure',
+    items: [
+      { name: 'Solana Wallets', href: '/infrastructure', icon: Cpu },
     ],
   },
   {

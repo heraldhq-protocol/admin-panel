@@ -185,6 +185,10 @@ export const apiClient = {
   updateTicketPriority: (id: string, priority: string) =>
     client.put<SupportTicket>(`/admin/support/tickets/${id}/priority`, { priority }).then(r => r.data),
 
+  // Solana infrastructure
+  getAuthority: () =>
+    client.get<{ address: string; solBalance: number; lamports: number; funded: boolean }>('/authority').then(r => r.data),
+
   // Team
   getTeam: () =>
     client.get<TeamMember[]>('/team').then(r => r.data),
