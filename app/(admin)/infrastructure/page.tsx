@@ -14,7 +14,10 @@ import {
   Zap,
   FileCode,
   RefreshCcw,
+  Lock,
+  Fingerprint,
 } from 'lucide-react'
+import { useSession } from 'next-auth/react'
 
 import { PageHeader } from '@/components/ui/page-header'
 import { Card } from '@/components/ui/card'
@@ -32,6 +35,114 @@ interface WalletInfo {
   funded: boolean
 }
 
+type ConfigStatus = 'unknown' | 'registered' | 'unregistered' | 'registering' | 'error'
+
+// ─── On-chain config panel (superadmin only) ──────────────────────────────────
+
+interface OnchainConfigPanelProps {
+  status: ConfigStatus
+  tx: string | null
+  errorMsg: string | null
+  onRegister: () => void
+}
+
+function OnchainConfigPanel({ status, tx, errorMsg, onRegister }: OnchainConfigPanelProps) {
+  return (
+    <div className="flex flex-col gap-3">
+      <span className="text-[10px] uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+        <Lock className="h-3 w-3" />
+        On-chain authority config
+        <Badge variant="inactive" className="text-[8px] normal-case tracking-normal ml-1">
+          superadmin
+        </Badge>
+      </span>
+
+      <div className="rounded-lg border border-border bg-bg p-4 flex flex-col gap-3">
+        {/* Status row */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs">
+            <Fingerprint className="h-4 w-4 text-text-muted shrink-0" />
+            <span className="text-text-secondary">GlobalConfig PDA</span>
+          </div>
+          {status === 'unknown' && (
+            <Badge variant="inactive">Not checked</Badge>
+          )}
+          {status === 'registered' && (
+            <Badge variant="active">
+              <ShieldCheck className="h-3 w-3 mr-1" />
+              Registered
+            </Badge>
+          )}
+          {status === 'unregistered' && (
+            <Badge variant="failed">
+              <AlertTriangle className="h-3 w-3 mr-1" />
+              Not registered
+            </Badge>
+          )}
+          {status === 'registering' && (
+            <Badge variant="inactive">
+              <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+              Registering…
+            </Badge>
+          )}
+          {status === 'error' && (
+            <Badge variant="failed">Failed</Badge>
+          )}
+        </div>
+
+        {/* Description */}
+        <p className="text-[11px] text-text-muted leading-relaxed">
+          The <code className="font-mono text-text-secondary">GlobalConfig</code> PDA stores the KMS authority
+          pubkey on-chain. It must be initialised once after each program deployment or upgrade before any
+          protocol operations can succeed.
+        </p>
+
+        {/* Tx link */}
+        {tx && (
+          <div className="flex items-center gap-2 rounded bg-teal/5 border border-teal/20 px-3 py-2">
+            <CheckCircle2 className="h-3.5 w-3.5 text-teal shrink-0" />
+            <code className="flex-1 text-[10px] font-mono text-text-secondary truncate">{tx}</code>
+            <a
+              href={`https://explorer.solana.com/tx/${tx}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 text-text-muted hover:text-teal transition-colors"
+              title="View transaction"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          </div>
+        )}
+
+        {/* Error */}
+        {errorMsg && (
+          <p className="text-[11px] text-red">{errorMsg}</p>
+        )}
+
+        {/* Action */}
+        {(status === 'unknown' || status === 'unregistered' || status === 'error') && (
+          <Button
+            size="sm"
+            variant={status === 'unregistered' ? 'default' : 'outline'}
+            onClick={onRegister}
+            disabled={status === 'registering'}
+            className="self-start"
+          >
+            <Fingerprint className="h-3.5 w-3.5 mr-2" />
+            {status === 'unknown' ? 'Initialize config' : 'Register on-chain'}
+          </Button>
+        )}
+
+        {status === 'registered' && !tx && (
+          <p className="text-[11px] text-text-muted">
+            Already initialised on this deployment. Safe to re-run if you rotated the program.
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Wallet card ──────────────────────────────────────────────────────────────
 
 interface WalletCardProps {
@@ -44,6 +155,8 @@ interface WalletCardProps {
   error: string | null
   onRefresh: () => void
   icon: React.ReactNode
+  /** Superadmin-only on-chain config panel. Omit to hide. */
+  configPanel?: React.ReactNode
 }
 
 function WalletCard({
@@ -56,6 +169,7 @@ function WalletCard({
   error,
   onRefresh,
   icon,
+  configPanel,
 }: WalletCardProps) {
   const [copied, setCopied] = React.useState(false)
 
@@ -190,6 +304,13 @@ function WalletCard({
         </ul>
       </div>
 
+      {/* Superadmin config panel */}
+      {configPanel && (
+        <div className="border-t border-border pt-4">
+          {configPanel}
+        </div>
+      )}
+
       {/* Funding guidance */}
       {data && !data.funded && (
         <div className="rounded-lg bg-gold/10 border border-gold/20 px-4 py-3 text-xs text-text-secondary">
@@ -215,9 +336,16 @@ function WalletCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function InfrastructurePage() {
+  const { data: session } = useSession()
+  const isSuperAdmin = session?.user?.role === 'super_admin'
+
   const [authority, setAuthority] = React.useState<WalletInfo | null>(null)
   const [authorityLoading, setAuthorityLoading] = React.useState(true)
   const [authorityError, setAuthorityError] = React.useState<string | null>(null)
+
+  const [configStatus, setConfigStatus] = React.useState<ConfigStatus>('unknown')
+  const [configTx, setConfigTx] = React.useState<string | null>(null)
+  const [configError, setConfigError] = React.useState<string | null>(null)
 
   async function loadAuthority() {
     setAuthorityLoading(true)
@@ -229,6 +357,26 @@ export default function InfrastructurePage() {
       setAuthorityError('Failed to load authority info. Check that the admin-api is reachable and KMS is configured.')
     } finally {
       setAuthorityLoading(false)
+    }
+  }
+
+  async function registerOnchain() {
+    setConfigStatus('registering')
+    setConfigError(null)
+    setConfigTx(null)
+    try {
+      const result = await apiClient.initializeOnchainConfig()
+      if (result.status === 'already_initialized') {
+        setConfigStatus('registered')
+      } else {
+        setConfigStatus('registered')
+        setConfigTx(result.tx ?? null)
+      }
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } }; message?: string })
+        ?.response?.data?.message ?? (err as Error)?.message ?? 'Unknown error'
+      setConfigStatus('error')
+      setConfigError(msg)
     }
   }
 
@@ -297,6 +445,16 @@ export default function InfrastructurePage() {
           error={authorityError}
           onRefresh={loadAuthority}
           icon={<Cpu className="h-5 w-5 text-teal" />}
+          configPanel={
+            isSuperAdmin ? (
+              <OnchainConfigPanel
+                status={configStatus}
+                tx={configTx}
+                errorMsg={configError}
+                onRegister={registerOnchain}
+              />
+            ) : undefined
+          }
         />
 
         <Card padding="lg" className="flex flex-col gap-5 border-dashed opacity-60">

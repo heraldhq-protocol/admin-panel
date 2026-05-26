@@ -188,6 +188,8 @@ export const apiClient = {
   // Solana infrastructure
   getAuthority: () =>
     client.get<{ address: string; solBalance: number; lamports: number; funded: boolean }>('/authority').then(r => r.data),
+  initializeOnchainConfig: () =>
+    client.post<{ status: 'initialized' | 'already_initialized'; tx?: string; message?: string }>('/authority/initialize-config').then(r => r.data),
 
   // Team
   getTeam: () =>
