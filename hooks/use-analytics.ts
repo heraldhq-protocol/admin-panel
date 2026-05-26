@@ -11,6 +11,7 @@ import { track } from '@/lib/analytics'
 
 type AnalyticsEvent =
   | { event: 'protocol_suspended';             props: { protocol_id: string; protocol_name: string; reason_length: number } }
+  | { event: 'protocol_activated';             props: { protocol_id: string; protocol_name: string } }
   | { event: 'protocol_unsuspended';           props: { protocol_id: string; protocol_name: string } }
   | { event: 'protocol_tier_changed';          props: { protocol_id: string; protocol_name: string; old_tier: number; new_tier: number } }
   | { event: 'protocol_verified';              props: { protocol_id: string; protocol_name: string } }
