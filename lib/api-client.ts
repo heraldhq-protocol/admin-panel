@@ -200,4 +200,31 @@ export const apiClient = {
     client.put<TeamMember>(`/team/${id}/role`, { role }).then(r => r.data),
   removeTeamMember: (id: string) =>
     client.delete<{ success: boolean }>(`/team/${id}`).then(r => r.data),
+
+  // AWS Costs
+  getAwsCosts: () =>
+    client.get<AwsCostSummary>('/aws-costs').then(r => r.data),
+  clearAwsCostCache: () =>
+    client.post<{ cleared: boolean }>('/aws-costs/cache/clear').then(r => r.data),
+}
+
+// ─── AWS Cost types (used by api-client + useAwsCosts hook) ───────────────────
+
+export interface AwsServiceCost {
+  name: string
+  amount: number
+  unit: string
+}
+
+export interface AwsDailyEntry {
+  date: string
+  total: number
+  services: { name: string; amount: number }[]
+}
+
+export interface AwsCostSummary {
+  currentMonth: { period: { start: string; end: string }; services: AwsServiceCost[]; total: number }
+  previousMonth: { period: { start: string; end: string }; services: AwsServiceCost[]; total: number }
+  dailyBreakdown: AwsDailyEntry[]
+  forecast: { forecastedAmount: number; unit: string } | null
 }

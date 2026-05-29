@@ -77,6 +77,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Infrastructure',
     items: [
       { name: 'Solana Wallets', href: '/infrastructure', icon: Cpu },
+      { name: 'AWS Costs',      href: '/aws-costs',      icon: DollarSign },
     ],
   },
   {
