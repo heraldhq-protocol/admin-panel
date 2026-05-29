@@ -15,6 +15,7 @@ import {
   DollarSign,
   MessageCircle,
   Cpu,
+  Megaphone,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -43,6 +44,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { name: 'Protocols',       href: '/protocols',       icon: Database,   badgeKey: 'pendingVerifications' },
       { name: 'Design Partners', href: '/design-partners', icon: Handshake },
+      { name: 'Broadcasts',      href: '/broadcasts',      icon: Megaphone },
     ],
   },
   {

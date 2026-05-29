@@ -206,6 +206,41 @@ export const apiClient = {
     client.get<AwsCostSummary>('/aws-costs').then(r => r.data),
   clearAwsCostCache: () =>
     client.post<{ cleared: boolean }>('/aws-costs/cache/clear').then(r => r.data),
+
+  // Broadcasts
+  sendBroadcast: (data: SendBroadcastPayload) =>
+    client.post<{ broadcastId: string; protocolsTargeted: number; emailsSent: number }>('/broadcasts', data).then(r => r.data),
+  getBroadcasts: (params?: { page?: number; per_page?: number }) =>
+    client.get<PaginatedResponse<BroadcastMessage>>('/broadcasts', { params }).then(r => r.data),
+  getBroadcast: (id: string) =>
+    client.get<BroadcastMessage & { stats: { read: number; emailsSent: number } }>(`/broadcasts/${id}`).then(r => r.data),
+}
+
+// ─── Broadcast types ─────────────────────────────────────────────────────────
+
+export type BroadcastType = 'maintenance' | 'incident' | 'changelog' | 'general' | 'announcement'
+export type BroadcastTargetMode = 'all' | 'active' | 'tier' | 'selected'
+
+export interface BroadcastMessage {
+  id: string
+  title: string
+  body: string
+  type: BroadcastType
+  targetMode: BroadcastTargetMode
+  targetTier: number | null
+  targetIds: string[]
+  sentCount: number
+  sentBy: string | null
+  createdAt: string
+}
+
+export interface SendBroadcastPayload {
+  title: string
+  body: string
+  type: BroadcastType
+  targetMode: BroadcastTargetMode
+  targetTier?: number
+  targetIds?: string[]
 }
 
 // ─── AWS Cost types (used by api-client + useAwsCosts hook) ───────────────────
