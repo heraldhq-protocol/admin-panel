@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { apiClient } from '@/lib/api-client'
+import type { ProtocolTelegramSettings } from '@/lib/api-client'
 import { QUERY_KEYS } from '@/lib/query-keys'
 import { formatRelativeTime, formatTier } from '@/lib/format'
 import { WalletAddress } from '@/components/ui/wallet-address'
@@ -47,7 +48,7 @@ import { cn } from '@/lib/cn'
 import type { Tier } from '@/types/billing'
 import type { AuditLogEntry } from '@/types/api'
 
-type Tab = 'overview' | 'notifications' | 'webhooks' | 'billing' | 'notes' | 'audit_log'
+type Tab = 'overview' | 'notifications' | 'webhooks' | 'billing' | 'notes' | 'audit_log' | 'telegram'
 
 // ─── Action label formatting ──────────────────────────────────────────────────
 
@@ -104,6 +105,13 @@ export default function ProtocolDetailsPage() {
     queryKey: [...QUERY_KEYS.protocol(id), 'audit', auditPage],
     queryFn: () => apiClient.getProtocolAuditLog(id, { page: auditPage, per_page: 20 }),
     enabled: activeTab === 'audit_log' && !!id,
+    staleTime: 60_000,
+  })
+
+  const { data: tgSettings, isLoading: tgLoading } = useQuery({
+    queryKey: [...QUERY_KEYS.protocol(id), 'telegram'],
+    queryFn: () => apiClient.getProtocolTelegramSettings(id),
+    enabled: activeTab === 'telegram' && !!id,
     staleTime: 60_000,
   })
 
@@ -185,6 +193,7 @@ export default function ProtocolDetailsPage() {
           { id: 'notifications',  label: 'Notifications',  icon: Bell },
           { id: 'webhooks',       label: 'Webhooks',       icon: Webhook },
           { id: 'billing',        label: 'Billing',        icon: Settings },
+          { id: 'telegram',       label: 'Telegram',       icon: Mail },
           { id: 'notes',          label: 'Notes',          icon: StickyNote },
           { id: 'audit_log',      label: 'Audit Log',      icon: History },
         ] as { id: Tab; label: string; icon: React.ElementType }[]).map((t) => (
@@ -425,6 +434,116 @@ export default function ProtocolDetailsPage() {
           />
           <p className="text-[10px] text-text-muted">Saved automatically. Logged with your admin ID.</p>
         </Card>
+      )}
+
+      {/* ── Telegram Tab ─────────────────────────────────────────────────────── */}
+      {activeTab === 'telegram' && (
+        <div className="space-y-6">
+          {tgLoading ? (
+            <Card padding="lg">
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} variant="rect" className="h-10" />
+                ))}
+              </div>
+            </Card>
+          ) : !tgSettings ? (
+            <Card padding="lg">
+              <p className="text-sm text-text-muted text-center py-8">Failed to load Telegram settings.</p>
+            </Card>
+          ) : (
+            <>
+              {/* Status + stats row */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { label: 'Bot Configured', value: tgSettings.configured ? 'Yes' : 'No', color: tgSettings.configured ? 'text-teal' : 'text-text-muted' },
+                  { label: 'Subscribers', value: tgSettings.subscribers.toLocaleString(), color: 'text-foreground' },
+                  { label: 'Delivered (30d)', value: tgSettings.last30Days.delivered.toLocaleString(), color: 'text-foreground' },
+                  {
+                    label: 'Delivery Rate (30d)',
+                    value: tgSettings.last30Days.deliveryRate != null ? `${tgSettings.last30Days.deliveryRate}%` : '—',
+                    color: (tgSettings.last30Days.deliveryRate ?? 100) >= 90 ? 'text-teal' : 'text-red',
+                  },
+                ].map(({ label, value, color }) => (
+                  <Card key={label} padding="lg">
+                    <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">{label}</p>
+                    <p className={`text-2xl font-bold mt-1 ${color}`}>{value}</p>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Config details */}
+              <Card padding="lg" className="space-y-5">
+                <h3 className="font-syne text-base font-bold">Channel Configuration</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-sm">
+                  <div>
+                    <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider mb-1">Bot Username</p>
+                    {tgSettings.botUsername
+                      ? <a href={`https://t.me/${tgSettings.botUsername}`} target="_blank" rel="noreferrer" className="text-teal hover:underline font-mono text-xs">@{tgSettings.botUsername} ↗</a>
+                      : <span className="text-text-muted italic text-xs">Not configured</span>}
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider mb-1">Group / Channel Chat ID</p>
+                    {tgSettings.groupChatId
+                      ? <code className="text-xs font-mono select-all">{tgSettings.groupChatId}</code>
+                      : <span className="text-text-muted italic text-xs">Not set</span>}
+                  </div>
+                </div>
+
+                {/* Thread routing map */}
+                <div>
+                  <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider mb-2">Topic Thread Routing</p>
+                  {tgSettings.threadIds && Object.keys(tgSettings.threadIds).length > 0 ? (
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="text-left text-text-muted border-b border-border">
+                          <th className="pb-1.5 font-bold uppercase">Category</th>
+                          <th className="pb-1.5 font-bold uppercase">Thread ID</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/50">
+                        {Object.entries(tgSettings.threadIds).map(([cat, tid]) => (
+                          <tr key={cat}>
+                            <td className="py-1.5 pr-4 text-text-secondary capitalize">{cat}</td>
+                            <td className="py-1.5 font-mono text-foreground">{tid}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p className="text-text-muted italic text-xs">No thread routing configured</p>
+                  )}
+                </div>
+
+                {/* 30-day delivery summary bar */}
+                {tgSettings.last30Days.total > 0 && (
+                  <div>
+                    <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider mb-2">30-Day Delivery Breakdown</p>
+                    <div className="space-y-2">
+                      {[
+                        { label: 'Delivered', value: tgSettings.last30Days.delivered, color: 'bg-teal' },
+                        { label: 'Failed', value: tgSettings.last30Days.failed, color: 'bg-red' },
+                      ].map(({ label, value, color }) => {
+                        const pct = Math.round((value / tgSettings.last30Days.total) * 100);
+                        return (
+                          <div key={label} className="space-y-1">
+                            <div className="flex justify-between text-xs text-text-muted">
+                              <span>{label}</span>
+                              <span className="font-mono">{value.toLocaleString()} ({pct}%)</span>
+                            </div>
+                            <div className="h-1.5 w-full bg-card-2 rounded-full overflow-hidden">
+                              <div className={`h-full ${color} rounded-full`} style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </>
+          )}
+        </div>
       )}
 
       {/* ── Overview Tab ─────────────────────────────────────────────────────── */}

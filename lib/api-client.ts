@@ -142,6 +142,8 @@ export const apiClient = {
     client.delete<{ success: boolean }>(`/protocols/${id}`).then(r => r.data),
   getProtocolAuditLog: (id: string, params?: { page?: number; per_page?: number }) =>
     client.get<PaginatedResponse<AuditLogEntry>>(`/protocols/${id}/audit-log`, { params }).then(r => r.data),
+  getProtocolTelegramSettings: (id: string) =>
+    client.get<ProtocolTelegramSettings>(`/protocols/${id}/telegram`).then(r => r.data),
 
   // Moderation
   getModerationQueue: (filters?: ModerationFilters) =>
@@ -262,4 +264,18 @@ export interface AwsCostSummary {
   previousMonth: { period: { start: string; end: string }; services: AwsServiceCost[]; total: number }
   dailyBreakdown: AwsDailyEntry[]
   forecast: { forecastedAmount: number; unit: string } | null
+}
+
+export interface ProtocolTelegramSettings {
+  configured: boolean
+  botUsername: string | null
+  groupChatId: string | null
+  threadIds: Record<string, string> | null
+  subscribers: number
+  last30Days: {
+    delivered: number
+    failed: number
+    total: number
+    deliveryRate: number | null
+  }
 }
