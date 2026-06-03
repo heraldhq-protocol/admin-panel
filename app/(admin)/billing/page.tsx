@@ -112,11 +112,28 @@ export default function BillingPage() {
 
   // ── Revenue computations ───────────────────────────────────────────────────
 
+  // Protocols receiving a complimentary tier grant (design partners) are NOT
+  // paying for their tier — exclude them from tier revenue so MRR reflects
+  // actual cash. Their value is captured separately via retainer MRR.
+  const tierGrantProtocolIds = React.useMemo(
+    () =>
+      new Set(
+        (designPartners?.data ?? [])
+          .filter((dp) => dp.billing_type === 'tier_grant')
+          .map((dp) => dp.protocol_id),
+      ),
+    [designPartners],
+  )
+
   const tierCounts = React.useMemo(() => {
     const counts: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0 }
-    protocols.forEach((p) => { counts[p.tier] = (counts[p.tier] ?? 0) + 1 })
+    protocols.forEach((p) => {
+      // Skip tier-grant design partners — they don't pay for their tier.
+      if (tierGrantProtocolIds.has(p.id)) return
+      counts[p.tier] = (counts[p.tier] ?? 0) + 1
+    })
     return counts
-  }, [protocols])
+  }, [protocols, tierGrantProtocolIds])
 
   // MRR from paid tiers (cents)
   const tierMrrCents = React.useMemo(() =>
