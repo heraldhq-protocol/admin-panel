@@ -7,7 +7,7 @@ import { SidebarNav } from './sidebar'
 import { Topnav } from './topnav'
 import { CommandPalette } from '@/components/command-palette'
 import { useUiStore } from '@/lib/stores/ui-store'
-import { PostHogIdentify } from '@/components/analytics/posthog-identify'
+import { AdtivityIdentify } from '@/components/analytics/adtivity-identify'
 
 interface AdminShellProps {
   children: React.ReactNode
@@ -62,7 +62,7 @@ export function AdminShell({ children }: AdminShellProps) {
       </div>
 
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
-      <PostHogIdentify />
+      <AdtivityIdentify />
     </div>
   )
 }

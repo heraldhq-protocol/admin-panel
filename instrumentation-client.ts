@@ -1,15 +1,18 @@
-import posthog from 'posthog-js'
+import { init, initClickTracking, initPageTracking, initLocationTracking } from '@adtivity/adtivity-sdk'
 
-posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-  api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com',
-  defaults: '2026-01-30',
-  capture_pageview: true,
-  capture_pageleave: true,
-  // Mask all inputs in session recordings — this panel handles sensitive protocol data
-  session_recording: {
-    maskAllInputs: true,
-    maskTextSelector: '[data-sensitive]',
-  },
-  // Disable autocapture of clicks/forms — we fire explicit events only
-  autocapture: false,
-})
+if (typeof window !== 'undefined') {
+  const API_KEY = process.env.NEXT_PUBLIC_ADTIVITY_API_KEY
+  if (API_KEY) {
+    try {
+      init({
+        apiKey: API_KEY,
+        debug: false,
+      })
+      initPageTracking()
+      initClickTracking()
+      initLocationTracking()
+    } catch (err) {
+      console.warn('Adtivity SDK failed to initialize:', err)
+    }
+  }
+}

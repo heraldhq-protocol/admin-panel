@@ -1,16 +1,16 @@
 'use client'
 
-import posthog from 'posthog-js'
+import { trackEvent } from '@adtivity/adtivity-sdk'
 
 type Props = Record<string, unknown>
 
 /**
- * Fire a PostHog event. Safe to call before init — posthog-js queues internally.
+ * Fire an Adtivity event. Safe to call before init — SDK queues internally.
  * Swallows errors so analytics never breaks the UI.
  */
 export function track(event: string, props?: Props): void {
   try {
-    posthog.capture(event, props)
+    trackEvent(event, props)
   } catch {
     // silent — analytics must never throw
   }
